@@ -59,6 +59,8 @@ h3 { font-size: 1.1rem; margin-top: 1.4em; }
 p { margin: 0 0 1em; }
 a { color: var(--accent); }
 .small { font-size: .88rem; color: var(--muted); }
+.love { text-align: center; font-family: var(--serif); font-size: 1rem; color: var(--muted); margin: 1.4rem 0 0; }
+.love .heart { color: var(--accent); }
 .center { text-align: center; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: -999px; top: 0; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; z-index: 100; }
