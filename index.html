@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Approdo – una sera alla volta</title>
-<meta name="description" content="Un momento tranquillo prima di dormire: ogni sera un tema diverso, una lettura breve, un esercizio e la buonanotte.">
+<title>Approdo – un momento alla volta</title>
+<meta name="description" content="Un compagno per tutta la giornata: l’avvio del mattino, una pausa nel pomeriggio, la serata a tema con la buonanotte e un aiuto se di notte sei sveglia.">
 <meta name="theme-color" content="#14131c" id="meta-theme">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
 <a class="skip" href="#main">Vai al contenuto</a>
 
 <header class="top">
-  <a class="brand" href="#stasera" aria-label="Approdo, vai a Stasera">
+  <a class="brand" href="#stasera" aria-label="Approdo, vai a Oggi">
     <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M21 6.2A10.6 10.6 0 1 0 25.8 21 8.6 8.6 0 0 1 21 6.2z" fill="currentColor"/><path d="M3 26.5c3 0 3-1.6 6-1.6s3 1.6 6 1.6 3-1.6 6-1.6 3 1.6 6 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".6"/></svg>
     <span>Approdo</span>
   </a>
@@ -71,7 +71,7 @@
 </main>
 
 <nav class="tabs" aria-label="Sezioni">
-  <a href="#stasera" data-tab="stasera"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Stasera</span></a>
+  <a href="#stasera" data-tab="stasera"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Oggi</span></a>
   <a href="#sere" data-tab="sere"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Sere</span></a>
   <a href="#perte" data-tab="perte" id="tab-perte" hidden><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7C19.5 15.9 12 20.5 12 20.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Per te</span></a>
   <a href="#diario" data-tab="diario"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 4.5h10.5a1.5 1.5 0 0 1 1.5 1.5v13.5H7.5A1.5 1.5 0 0 1 6 18z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 9h5M9.5 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Diario</span></a>
@@ -86,7 +86,7 @@
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
     </div>
-    <p class="lede">Va bene così: sei venuta qui. Facciamo una cosa alla volta, adesso. Non devi risolvere niente stasera.</p>
+    <p class="lede">Va bene così: sei venuta qui. Facciamo una cosa alla volta, adesso. Non devi risolvere niente adesso.</p>
 
     <details class="acc" open>
       <summary>Respira (due minuti)</summary>
@@ -142,7 +142,7 @@
     <details class="acc" id="acc-contatti">
       <summary>Le mie persone</summary>
       <div class="acc-body">
-        <p>Chi posso cercare stasera? Aggiungi i nomi e i numeri (restano solo sul tuo telefono).</p>
+        <p>Chi posso cercare quando è dura? Aggiungi i nomi e i numeri (restano solo sul tuo telefono).</p>
         <div id="contatti-lista"></div>
         <form id="contatti-form" class="contatti-form" autocomplete="off">
           <label class="sr" for="c-nome">Nome</label>
@@ -181,12 +181,12 @@
 <dialog id="dlg-benvenuto" aria-labelledby="ben-titolo">
   <form class="dlg-in" id="ben-form" method="dialog" autocomplete="off">
     <h2 id="ben-titolo">Benvenuta in Approdo</h2>
-    <p>Un momento tranquillo prima di dormire. Ogni sera un tema diverso: una lettura breve, un esercizio e la buonanotte. Ci vogliono dieci minuti, e puoi fermarti quando vuoi.</p>
+    <p>Un compagno per tutta la giornata. Al mattino un avvio di tre minuti, nel pomeriggio una pausa breve, la sera un tema diverso con la buonanotte, e se di notte sei sveglia un aiuto per riposare. Puoi fermarti quando vuoi.</p>
     <p>Come ti chiami? Serve solo per salutarti, e resta sul tuo telefono.</p>
     <label class="sr" for="ben-nome">Il tuo nome</label>
     <input id="ben-nome" type="text" maxlength="30" placeholder="Il tuo nome (se vuoi)" enterkeyhint="done">
     <button class="btn btn-block" type="submit">Iniziamo</button>
-    <button class="btn btn-ghost btn-block" type="button" id="ben-dura">Stasera è dura: aiutami subito</button>
+    <button class="btn btn-ghost btn-block" type="button" id="ben-dura">È dura: aiutami subito</button>
     <p class="small">Nessun account, nessun invio di dati: le tue note restano su questo telefono.</p>
   </form>
 </dialog>
@@ -200,8 +200,8 @@
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
     </div>
-    <p>Approdo è un compagno per la sera, pensato per chi segue un percorso di cura per il disturbo borderline di personalità. Non è una terapia e non sostituisce chi ti segue: è un posto dove fermarti a fine giornata.</p>
-    <p>I temi si ispirano alla DBT (Marsha Linehan), alla mentalizzazione (Bateman e Fonagy), alla teoria dell’attaccamento (John Bowlby) e al modello dei Gruppi Esperienziali Terapeutici. I testi sono parafrasi originali, non copie.</p>
+    <p>Approdo è un compagno per la giornata e per la sera, pensato per chi segue un percorso di cura per il disturbo borderline di personalità. Non è una terapia e non sostituisce chi ti segue: è un posto dove fermarti: tre minuti al mattino e al pomeriggio, un po’ di più la sera.</p>
+    <p>I temi si ispirano alla DBT (Marsha Linehan), alla mindfulness per la depressione (Williams, Teasdale, Segal e Kabat-Zinn), alla mentalizzazione (Bateman e Fonagy), alla teoria dell’attaccamento (John Bowlby) e al modello dei Gruppi Esperienziali Terapeutici. I testi sono parafrasi originali, non copie.</p>
     <h3>Il tuo nome</h3>
     <div class="row-inline">
       <label class="sr" for="info-nome">Nome</label>
@@ -240,6 +240,8 @@
 <script src="js/percorso.js"></script>
 <script src="js/arrivo.js"></script>
 <script src="js/tecniche.js"></script>
+<script src="js/giornata.js"></script>
+<script src="js/giornata_temi.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

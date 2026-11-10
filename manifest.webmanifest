@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Approdo – una sera alla volta",
+  "name": "Approdo – un momento alla volta",
   "short_name": "Approdo",
-  "description": "Un momento tranquillo prima di dormire: ogni sera un tema diverso.",
+  "description": "Un compagno per tutta la giornata: mattina, pomeriggio, sera e notte.",
   "lang": "it",
   "start_url": "./index.html",
   "scope": "./",

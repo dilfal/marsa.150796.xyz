@@ -4,7 +4,7 @@
 
   var A = window.Approdo;
   var TEMI = A.Temi;
-  var K = { nome: 'approdo.nome', visto: 'approdo.visto', vista: 'approdo.vista', note: 'approdo.note', contatti: 'approdo.contatti', piano: 'approdo.piano', profilo: 'approdo.profilo' };
+  var K = { nome: 'approdo.nome', visto: 'approdo.visto', vista: 'approdo.vista', note: 'approdo.note', contatti: 'approdo.contatti', piano: 'approdo.piano', profilo: 'approdo.profilo', giorni: 'approdo.giorni' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -189,6 +189,9 @@
     var ar = raw.arrivo && typeof raw.arrivo === 'object' ? raw.arrivo : {};
     P.arrivo = {};
     ['tensione', 'emozioni', 'corpo', 'bisogni', 'giornata', 'sonno', 'ieri'].forEach(function (g) { P.arrivo[g] = mappaTesti(ar[g], 500, 40); });
+    var gi = raw.giornata && typeof raw.giornata === 'object' ? raw.giornata : {};
+    P.giornata = {};
+    ['tensione', 'emozioni', 'sonno', 'cosa', 'corpo', 'verifica', 'notte'].forEach(function (g) { P.giornata[g] = mappaTesti(gi[g], 500, 40); });
     P.scene = {};
     if (raw.scene && typeof raw.scene === 'object' && !Array.isArray(raw.scene)) Object.keys(raw.scene).slice(0, 80).forEach(function (q) {
       if (q.length <= 40) P.scene[q] = mappaTesti(raw.scene[q], 500, 12);
@@ -203,6 +206,7 @@
   }
   var PROF = profiloSicuro(load(K.profilo, null));
   function perTe(gruppo, id) { return (PROF && PROF.arrivo[gruppo] && PROF.arrivo[gruppo][id]) || ''; }
+  function perTeG(gruppo, id) { return (PROF && PROF.giornata && PROF.giornata[gruppo] && PROF.giornata[gruppo][id]) || ''; }
 
   function tutteLeNote() {
     var n = load(K.note, {}), out = {};
@@ -232,7 +236,7 @@
   var S = null; /* stato della serata in corso */
   var radice = $('#stasera-root');
 
-  function avviaSerata(tema) {
+  function avviaSerata(tema, aggiungi) {
     var oggi = seraDi(new Date());
     var data = chiaveData(oggi);
     var salvata = leggiNota(data, tema.id);
@@ -247,7 +251,7 @@
       completa: !!(salvata && salvata.completa),
       sub: 0, ieri: domaniPrecedente(data)
     };
-    segnaPasso(true);
+    segnaPasso(!aggiungi);
     disegnaSerata();
   }
   function salvaSerata() {
@@ -279,7 +283,8 @@
     return [
       h('div', { class: 'hero' },
         h('p', { class: 'quando', text: A.Giorni[oggi.getDay()] + ' sera' }),
-        h('h1', { text: saluto() })),
+        h('h1', { text: saluto() }),
+        sceltaMomento()),
       h('div', { class: 'card tema-card', 'data-colore': t.colore },
         h('p', { class: 'sotto', text: S.oggi ? 'Il tema di stasera' : 'Un altro tema, per stasera' }),
         h('p', { class: 'nome', text: t.nome }),
@@ -326,8 +331,9 @@
   /* Una domanda: si tocca una risposta e compare subito la spiegazione. Nessuna risposta è «giusta».
      Le domande 'kit' (multi) si spuntano più volte. Ogni scelta si salva subito nella serata. */
   var ETICHETTE_DOMANDA = { riconosci: 'Ti riconosci?', mito: 'Mito o realtà?', kit: 'Scegli quelle che fanno per te' };
-  function cartaDomanda(q) {
-    var scelte = (S.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; });
+  function cartaDomanda(q, ctx) {
+    ctx = ctx || { scelte: S.scelte, salva: salvaSerata };   /* la serata, o un momento della giornata */
+    var scelte = (ctx.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; });
     var pq = PROF && PROF.scene && PROF.scene[q.id];   /* note «Per te» del profilo personale, se importato */
     var gruppo = h('div', { class: 'quiz-opz', role: 'group', 'aria-labelledby': 'qd-' + q.id });
     var spieg = h('div', { class: 'quiz-spieg' });
@@ -346,7 +352,7 @@
           o.fonte ? h('p', { class: 'fonte', text: o.fonte }) : null,
           (o.perte || (pq && pq[String(i)])) ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), o.perte || pq[String(i)]) : null,
           q.extra ? q.extra(o) : null));
-        if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: 'Stasera è dura', onclick: function () { apriDura(); } }));
+        if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }));
       });
       bottoni.forEach(function (b, i) { b.setAttribute('aria-pressed', scelte.indexOf(i) >= 0 ? 'true' : 'false'); });
     }
@@ -355,8 +361,8 @@
         var p = scelte.indexOf(i);
         if (p >= 0) scelte.splice(p, 1);          /* un secondo tocco toglie la risposta */
         else { if (!q.multi) scelte.length = 0; else if (q.max && scelte.length >= q.max) scelte.shift(); scelte.push(i); }
-        if (scelte.length) S.scelte[q.id] = scelte.slice(); else delete S.scelte[q.id];
-        salvaSerata();
+        if (scelte.length) ctx.scelte[q.id] = scelte.slice(); else delete ctx.scelte[q.id];
+        ctx.salva();
         mostra();
         annuncio.textContent = p >= 0 ? '' : o.testo + '. ' + o.spiegazione + (o.passo ? ' Un piccolo passo: ' + o.passo : '');
       } });
@@ -483,7 +489,7 @@
           var rb = h('div', { class: 'breath' });
           blocco.appendChild(rb);
           respiro(rb, 60);
-          blocco.appendChild(h('button', { class: 'chip', type: 'button', text: 'Stasera è dura: altre tecniche', onclick: function () { apriDura(); } }));
+          blocco.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura() + ': altre tecniche', onclick: function () { apriDura(); } }));
         }
         fb.appendChild(blocco);
       };
@@ -609,6 +615,349 @@
     }
   }
 
+  /* ---------- I MOMENTI DELLA GIORNATA: mattina, pomeriggio, notte (la sera è la serata a tema) ----------
+     L’app è aperta tutto il giorno; «Oggi» mostra il momento dell’ora (o quello scelto con i tasti in alto). */
+  var GI = A.Giornata || null;
+  var ORDINE_MOMENTI = ['mattina', 'pomeriggio', 'sera', 'notte'];
+  var MOMENTI_SALVATI = ['mattina', 'pomeriggio', 'notte'];
+  function momentoDi(d) { var o = d.getHours(); return o < 5 ? 'notte' : o < 12 ? 'mattina' : o < 18 ? 'pomeriggio' : 'sera'; }
+  var MOM = momentoDi(new Date());   /* il momento mostrato in «Oggi» */
+  var SCELTA = null;                 /* { m, auto }: il momento scelto a mano vale finché l’ora non cambia momento */
+  function momentoVoluto() {
+    var auto = momentoDi(new Date());
+    if (!GI) return 'sera';
+    return SCELTA && SCELTA.auto === auto ? SCELTA.m : auto;
+  }
+  function diGiorno() { return MOM === 'mattina' || MOM === 'pomeriggio'; }
+  function nomeDura() { return diGiorno() ? 'Oggi è dura' : 'Stasera è dura'; }
+
+  function tuttiIGiorni() {
+    var n = load(K.giorni, {}), out = {};
+    if (!n || typeof n !== 'object' || Array.isArray(n)) return out;
+    Object.keys(n).slice(0, 400).forEach(function (d) {
+      var x = n[d];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !x || typeof x !== 'object' || Array.isArray(x)) return;
+      var g = {};
+      MOMENTI_SALVATI.forEach(function (m) {
+        var y = x[m];
+        if (!y || typeof y !== 'object' || Array.isArray(y)) return;
+        g[m] = { prima: numero(y.prima), scelte: scelteSicure(y.scelte), fatto: y.fatto === true, t: typeof y.t === 'number' ? y.t : 0 };
+      });
+      if (Object.keys(g).length) out[d] = g;
+    });
+    return out;
+  }
+  function vuotoMomento(y) { return !y || (y.prima === null && !Object.keys(y.scelte).length && !y.fatto); }
+
+  var G = null;   /* stato del momento in corso */
+  function caricaMomento(m) {
+    var data = chiaveData(seraDi(new Date()));
+    var s = (tuttiIGiorni()[data] || {})[m] || null;
+    G = { momento: m, data: data, sub: 0, prima: s ? s.prima : null, scelte: s ? s.scelte : {}, fatto: !!(s && s.fatto) };
+    if (G.fatto) G.sub = passiMomento().length;   /* già fatto oggi: si apre sulla schermata finale */
+  }
+  function avviaMomento(m, aggiungi) { caricaMomento(m); segnaPassoG(!aggiungi); disegnaMomento(); }
+  function salvaMomento() {
+    if (!G) return;
+    var tutti = load(K.giorni, {});
+    if (!tutti || typeof tutti !== 'object' || Array.isArray(tutti)) tutti = {};
+    var giorno = tutti[G.data] && typeof tutti[G.data] === 'object' ? tutti[G.data] : {};
+    giorno[G.momento] = { prima: G.prima, scelte: G.scelte, fatto: G.fatto, t: Date.now() };
+    tutti[G.data] = giorno;
+    save(K.giorni, tutti);
+  }
+  function segnaPassoG(sostituisci) {
+    if (!G) return;
+    var st = { approdo: 1, g: G.momento, s: G.sub };
+    try { if (sostituisci) history.replaceState(st, ''); else history.pushState(st, ''); } catch (e) { /* niente */ }
+  }
+  function passiMomento() {
+    if (!G) return [];
+    var f = filoDi(G.data);
+    if (G.momento === 'mattina') return ['sonno', 'stato'].concat(f && f.mattina ? ['filo'] : [], ['cosa', 'respiro']);
+    if (G.momento === 'pomeriggio') return ['respiro', 'stato', 'corpo'].concat(f && f.pomeriggio ? ['filo'] : [], ['verifica']);
+    return ['notte'];
+  }
+  function vaiMomento(n) { salvaMomento(); G.sub = n; disegnaMomento(); window.scrollTo(0, 0); focusTitolo(); segnaPassoG(false); }
+
+  function sceltaMomento() {
+    if (!GI) return null;
+    var g = h('div', { class: 'momenti', role: 'group', 'aria-label': 'Momento della giornata' });
+    ORDINE_MOMENTI.forEach(function (m) {
+      g.appendChild(h('button', { class: 'momento', type: 'button', 'aria-pressed': m === MOM ? 'true' : 'false', text: GI.momenti[m].nome, onclick: function () {
+        if (m === MOM) return;
+        SCELTA = { m: m, auto: momentoDi(new Date()) };
+        apriMomento(m, true);
+      } }));
+    });
+    return g;
+  }
+  /* mostra un momento in «Oggi»: la sera è la serata a tema, gli altri sono i momenti della giornata */
+  function apriMomento(m, aggiungi, tema) {
+    MOM = m;
+    applicaTemaAuto();
+    fermaRespiri();
+    if (m === 'sera') {
+      var voluto = tema || temaDelGiorno(seraDi(new Date()).getDay());
+      if (!S || S.tema.id !== voluto.id || S.data !== chiaveData(seraDi(new Date()))) avviaSerata(voluto, aggiungi);
+      else { disegnaSerata(); if (aggiungi) segnaPasso(false); }
+    } else {
+      if (!G || G.momento !== m || G.data !== chiaveData(seraDi(new Date()))) avviaMomento(m, aggiungi);
+      else { disegnaMomento(); if (aggiungi) segnaPassoG(false); }
+    }
+    window.scrollTo(0, 0);
+    focusTitolo();
+  }
+  function heroMomento() {
+    return h('div', { class: 'hero' },
+      h('p', { class: 'quando', text: A.Giorni[seraDi(new Date()).getDay()] + ' · ' + GI.momenti[G.momento].nome.toLowerCase() }),
+      h('h1', { text: saluto() }),
+      sceltaMomento());
+  }
+  function bloccoSpiegazione(f, pt) {
+    var b = h('div', { class: 'quiz-sp' }, h('b', { text: f.titolo }), h('p', { text: f.frase }));
+    if (f.passo) b.appendChild(h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), f.passo));
+    if (f.passi) {
+      var ol = h('ol', { class: 'passi-lista' });
+      f.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
+      b.appendChild(ol);
+    }
+    if (pt) b.appendChild(h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pt));
+    if (f.fonte) b.appendChild(h('p', { class: 'fonte', text: f.fonte }));
+    return b;
+  }
+  function domandaG(id, domanda, lista, opz) {
+    opz = opz || {};
+    return cartaDomanda({
+      id: 'g-' + id, domanda: domanda, multi: !!opz.multi, max: opz.max || 0, extra: opz.extra || null,
+      opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '', crisi: !!o.crisi, perte: perTeG(opz.gruppo, o.id) }; })
+    }, { scelte: G.scelte, salva: salvaMomento });
+  }
+  /* le emozioni sono quelle dell’arrivo (stesso ordine, così il diario le legge uguali), con il feedback di giorno */
+  function emozioniDiGiorno() {
+    var AR = A.Arrivo;
+    return (AR ? AR.emozioni : []).map(function (o) {
+      var g = GI.emozioni[o.id] || {};
+      return { id: o.id, testo: o.testo, spiegazione: g.spiegazione || o.spiegazione, passo: g.passo || o.passo || '', fonte: g.fonte || o.fonte || '' };
+    });
+  }
+  /* «Tre minuti di respiro»: tre fasi da un minuto, con il tempo che scorre */
+  function treMinuti(box) {
+    var T = GI.treMinuti, fase = -1, rem = 0, timer = null;
+    var tit = h('p', { class: 'tm-titolo', text: '' });
+    var testo = h('p', { class: 'tm-testo', text: T.intro });
+    var tempo = h('p', { class: 'breath-time', text: '' });
+    var tre = h('div', { class: 'punti', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'));
+    var live = h('div', { class: 'sr', role: 'status', 'aria-live': 'polite' });
+    var b = h('button', { class: 'btn', type: 'button', text: 'Comincia i tre minuti' });
+    function segna(n) { [].forEach.call(tre.children, function (e, j) { e.className = j <= n ? 'on' : ''; }); }
+    function ferma(finito) {
+      clearTimeout(timer); timer = null;
+      var x = respiriAttivi.indexOf(ferma); if (x >= 0) respiriAttivi.splice(x, 1);
+      segna(finito === true ? 2 : -1);
+      fase = -1;
+      tempo.textContent = '';
+      tit.textContent = finito === true ? 'Fatto' : '';
+      testo.textContent = finito === true ? 'Tre minuti solo per te. Adesso torna alla giornata, piano.' : T.intro;
+      b.textContent = finito === true ? 'Ancora' : 'Comincia i tre minuti';
+    }
+    function tick() {
+      if (fase < 0) return;
+      tempo.textContent = 'ancora ' + rem + ' secondi';
+      if (rem <= 0) { vai(fase + 1); return; }
+      rem--;
+      timer = setTimeout(tick, 1000);
+    }
+    function vai(n) {
+      if (n >= T.fasi.length) { ferma(true); return; }
+      fase = n; rem = 60;
+      tit.textContent = (n + 1) + ' · ' + T.fasi[n].titolo;
+      testo.textContent = T.fasi[n].testo;
+      live.textContent = T.fasi[n].titolo + '. ' + T.fasi[n].testo;
+      segna(n);
+      tick();
+    }
+    b.addEventListener('click', function () {
+      if (fase >= 0) { ferma(false); return; }
+      respiriAttivi.push(ferma);
+      b.textContent = 'Ferma';
+      vai(0);
+    });
+    [tit, testo, tre, tempo, b, live, h('p', { class: 'fonte', text: T.fonte })].forEach(function (e) { box.appendChild(e); });
+    return box;
+  }
+  /* ciò che la notte propone nella pagina stessa */
+  function extraNotte(o) {
+    if (o.azione === 'conta' || o.azione === 'respiro') { var rb = h('div', { class: 'breath' }); respiro(rb, 120); return rb; }
+    if (o.azione === 'sensi') return h('div', null, h('p', { class: 'small', text: 'Piano, a occhi aperti:' }), cinqueSensi());
+    if (o.azione === 'sakina') return h('a', { class: 'btn btn-ghost', href: 'https://sakina.150796.xyz/', target: '_blank', rel: 'noopener', text: 'Apri Sakina, con il timer di spegnimento' });
+    return null;
+  }
+  /* il filo del giorno: l’abilità del tema della sera, portata nella mattina e nel pomeriggio */
+  function temaDi(data) { return temaDelGiorno(dateDa(data).getDay()); }
+  function filoDi(data) { var t = temaDi(data); return (A.Filo && t && A.Filo[t.id]) || null; }
+  function cosaDiStamattina() {
+    var m = (tuttiIGiorni()[G.data] || {}).mattina;
+    var i = m && m.scelte['g-cosa'] && m.scelte['g-cosa'][0];
+    return typeof i === 'number' && GI.mattina.cosa[i] ? GI.mattina.cosa[i] : null;
+  }
+
+  function disegnaMomento() {
+    fermaRespiri();
+    clear(radice);
+    var M = GI.momenti[G.momento], L = passiMomento();
+    var i = Math.max(0, Math.min(G.sub || 0, L.length)), id = L[i] || 'fine';
+    if (i === 0 || id === 'fine') radice.appendChild(heroMomento());
+    if (id === 'fine') { disegnaFineMomento(); return; }
+    if (i === 0) radice.appendChild(h('div', { class: 'card tema-card', 'data-colore': G.momento === 'notte' ? 'blue' : G.momento === 'mattina' ? 'amber' : 'teal' },
+      h('p', { class: 'sotto', text: M.nome }),
+      h('p', { class: 'nome', text: M.titolo }),
+      h('p', { class: 'sotto', text: M.sotto }),
+      h('p', { class: 'fonte', text: M.fonte })));
+    var card = h('div', { class: 'card quiz' }, L.length > 1 ? h('p', { class: 'sotto', text: M.nome + ' · ' + (i + 1) + ' di ' + L.length }) : null);
+
+    if (id === 'sonno') {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Come hai dormito?' }));
+      card.appendChild(domandaG('sonno', 'Com’è stata la notte?', GI.mattina.sonno, { gruppo: 'sonno' }));
+    }
+    if (id === 'stato') {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Come stai, adesso?' }));
+      card.appendChild(h('p', { id: 'q-g', text: 'Quanto sei tesa o agitata, in questo momento?' }));
+      var fb = h('div', { class: 'quiz-spieg', role: 'status', 'aria-live': 'polite' });
+      var mostra = function (v) {
+        fermaRespiri();
+        clear(fb);
+        var l = livello(v);
+        if (l === null) return;
+        var f = GI.tensione[l];
+        var blocco = bloccoSpiegazione(f, perTeG('tensione', String(l)));
+        if (l === 2) {
+          var rb = h('div', { class: 'breath' });
+          blocco.appendChild(rb);
+          respiro(rb, 60);
+          blocco.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura() + ': altre tecniche', onclick: function () { apriDura(); } }));
+        }
+        fb.appendChild(blocco);
+      };
+      card.appendChild(scalaUmore(G.prima, function (v) { G.prima = v; salvaMomento(); mostra(v); }, 'sc-g', 'q-g'));
+      card.appendChild(fb);
+      mostra(G.prima);
+      card.appendChild(h('p', { class: 'intro', text: 'Non ci sono emozioni giuste o sbagliate. Scegli fino a tre parole.' }));
+      card.appendChild(domandaG('emo', 'Che emozioni ci sono, adesso?', emozioniDiGiorno(), { multi: true, max: 3, gruppo: 'emozioni' }));
+    }
+    if (id === 'cosa' || (id === 'verifica' && !cosaDiStamattina())) {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: id === 'cosa' ? 'Una cosa per oggi' : 'Una cosa per il resto della giornata' }));
+      card.appendChild(h('p', { class: 'intro', text: id === 'cosa' ? 'Una sola, e piccola. Nel pomeriggio, se passi di qui, ti chiederò com’è andata.' : 'Una sola, e piccola: la giornata non è ancora finita.' }));
+      card.appendChild(domandaG('cosa', 'Che cosa scegli?', GI.mattina.cosa, { gruppo: 'cosa' }));
+    } else if (id === 'verifica') {
+      var c = cosaDiStamattina();
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'La cosa di stamattina' }));
+      card.appendChild(h('p', { class: 'intro', text: 'Avevi scelto:' }));
+      card.appendChild(h('p', { class: 'quiz-dom', text: c.testo }));
+      card.appendChild(domandaG('verifica', 'Com’è andata, finora?', GI.pomeriggio.verifica, { gruppo: 'verifica' }));
+    }
+    if (id === 'filo') {
+      var tf = temaDi(G.data), F = filoDi(G.data);
+      card.className = 'card quiz tema-card';
+      card.setAttribute('data-colore', tf.colore);
+      if (G.momento === 'mattina') {
+        var fm = F.mattina;
+        card.appendChild(h('p', { class: 'sotto', text: 'Il filo di oggi · ' + tf.nome }));
+        card.appendChild(h('h2', { class: 'passo-titolo', text: fm.abilita }));
+        card.appendChild(h('h3', { text: 'In termini tecnici' }));
+        card.appendChild(h('p', { text: fm.tecnico }));
+        card.appendChild(h('h3', { text: 'In parole semplici' }));
+        card.appendChild(h('p', { text: fm.spiegato }));
+        card.appendChild(h('p', { class: 'quiz-passo' }, h('b', { text: 'Da portare nella giornata: ' }), fm.pratica));
+        if (fm.fonte) card.appendChild(h('p', { class: 'fonte', text: fm.fonte }));
+        card.appendChild(h('p', { class: 'small', text: 'Stasera il tema «' + tf.nome + '» continua, con la lettura e l’esercizio.' }));
+      } else {
+        var fp = F.pomeriggio, fmt = F.mattina;
+        card.appendChild(h('p', { class: 'sotto', text: 'Il filo di oggi · ' + tf.nome }));
+        card.appendChild(h('h2', { class: 'passo-titolo', text: fmt ? fmt.abilita : tf.nome }));
+        card.appendChild(cartaDomanda({ id: 'g-filo', tipo: fp.tipo, domanda: fp.domanda, multi: false, opzioni: fp.opzioni }, { scelte: G.scelte, salva: salvaMomento }));
+      }
+    }
+    if (id === 'respiro') {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Tre minuti di respiro' }));
+      card.appendChild(h('p', { class: 'intro', text: G.momento === 'mattina'
+        ? 'È la prima delle tre pause della giornata: una adesso, una nel pomeriggio, una la sera. Se adesso non c’è tempo, puoi saltarla.'
+        : 'Una pausa breve, a orario fisso: aiuta di più se diventa un’abitudine, non solo quando è dura.' }));
+      card.appendChild(treMinuti(h('div', { class: 'tre-minuti' })));
+    }
+    if (id === 'corpo') {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Il corpo, a metà giornata' }));
+      card.appendChild(domandaG('corpo', 'Che cosa vale per te, oggi? (fino a tre)', GI.pomeriggio.corpo, { multi: true, max: 3, gruppo: 'corpo' }));
+    }
+    if (id === 'notte') {
+      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Che cosa ti tiene sveglia?' }));
+      card.appendChild(domandaG('notte', 'Tocca quello che vale per te, adesso.', GI.notte.motivi, { extra: extraNotte, gruppo: 'notte' }));
+    }
+    radice.appendChild(card);
+    var ultimo = i === L.length - 1;
+    radice.appendChild(h('div', { class: 'nav-passi' },
+      i > 0 ? h('button', { class: 'btn btn-ghost', type: 'button', text: 'Indietro', onclick: function () { vaiMomento(i - 1); } })
+        : (G.momento === 'notte' ? h('button', { class: 'btn btn-ghost', type: 'button', text: 'Torna alla serata', onclick: function () { SCELTA = { m: 'sera', auto: momentoDi(new Date()) }; apriMomento('sera', true); } }) : null),
+      h('button', { class: 'btn', type: 'button', text: ultimo ? 'Ho finito' : 'Avanti', onclick: function () {
+        if (ultimo) { G.fatto = true; vaiMomento(L.length); } else vaiMomento(i + 1);
+      } })));
+  }
+  function disegnaFineMomento() {
+    var m = G.momento, righe = [];
+    var alta = livello(G.prima) === 2 || GI.notte.motivi.some(function (o, i) { return o.crisi && m === 'notte' && (G.scelte['g-notte'] || []).indexOf(i) >= 0; });
+    var titolo = m === 'mattina' ? 'Buona giornata' : m === 'pomeriggio' ? 'Buon proseguimento' : 'Buon riposo';
+    if (m === 'mattina') {
+      var ci = (G.scelte['g-cosa'] || [])[0], c = typeof ci === 'number' ? GI.mattina.cosa[ci] : null;
+      if (c) righe.push(h('div', { class: 'riepilogo' }, h('p', { class: 'sotto', text: 'La tua cosa per oggi' }), h('p', { text: c.testo }), c.passo ? h('p', null, h('b', { text: 'Il primo passo: ' }), c.passo) : null));
+      righe.push(h('p', { text: 'Nel pomeriggio, se ti va, torna per una pausa di tre minuti.' }));
+    }
+    if (m === 'pomeriggio') {
+      var t = temaDelGiorno(seraDi(new Date()).getDay());
+      righe.push(h('p', { text: 'Stasera ti aspetta «' + t.nome + '». A dopo.' }));
+    }
+    if (m === 'notte') righe.push(h('p', { text: 'Prova a riposare, anche senza dormire. Il telefono può stare lontano: buonanotte.' }));
+    if (alta) righe.push(h('div', null,
+      h('p', { text: 'Se la tensione è ancora alta, non restare sola: qui sotto trovi una strada breve per calmarti.' }),
+      h('button', { class: 'btn btn-alert', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } })));
+    var card = h('div', { class: 'card fatto' }, h('h2', { class: 'passo-titolo', text: titolo }));
+    righe.forEach(function (r) { card.appendChild(r); });
+    radice.appendChild(card);
+    radice.appendChild(h('div', { class: 'nav-passi' },
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Rivedi', onclick: function () { vaiMomento(0); } }),
+      m === 'pomeriggio'
+        ? h('button', { class: 'btn', type: 'button', text: 'Vai alla sera', onclick: function () { SCELTA = { m: 'sera', auto: momentoDi(new Date()) }; apriMomento('sera', true); } })
+        : h('a', { class: 'btn', href: '#diario', text: 'Il mio diario' })));
+  }
+
+  /* righe leggibili di un momento salvato, per il diario e il riepilogo */
+  function righeMomento(m, y, data) {
+    var out = [];
+    if (!GI || !y) return out;
+    var nome = GI.momenti[m].nome;
+    if (y.prima !== null) out.push([nome + ' · tensione', breveLiv(y.prima)]);
+    var liste = [['emo', 'come mi sentivo', A.Arrivo ? A.Arrivo.emozioni : []]];
+    if (m === 'mattina') liste.unshift(['sonno', 'il sonno', GI.mattina.sonno]);
+    if (m === 'mattina' || m === 'pomeriggio') liste.push(['cosa', 'una cosa per oggi', GI.mattina.cosa]);
+    if (m === 'pomeriggio') liste.push(['corpo', 'il corpo', GI.pomeriggio.corpo], ['verifica', 'la cosa di stamattina', GI.pomeriggio.verifica]);
+    var fd = data && m === 'pomeriggio' ? filoDi(data) : null;
+    if (fd && fd.pomeriggio) liste.push(['filo', 'il filo del giorno (' + temaDi(data).nome + ')', fd.pomeriggio.opzioni]);
+    if (m === 'notte') liste = [['notte', 'che cosa mi teneva sveglia', GI.notte.motivi]];
+    liste.forEach(function (r) {
+      var v = (y.scelte['g-' + r[0]] || []).filter(function (i) { return r[2][i]; }).map(function (i) { return r[2][i].testo; });
+      if (v.length) out.push([nome + ' · ' + r[1], v.join(' · ')]);
+    });
+    return out;
+  }
+  function righeGiorno(g, data) {
+    var out = [];
+    MOMENTI_SALVATI.forEach(function (m) { if (!vuotoMomento(g[m])) righeMomento(m, g[m], data).forEach(function (r) { out.push(r); }); });
+    return out;
+  }
+  function umoreGiorno(g) {
+    return MOMENTI_SALVATI.filter(function (m) { return g[m] && g[m].prima !== null; })
+      .map(function (m) { return breveLiv(g[m].prima); }).join(' → ');
+  }
+
   function navPassi(indietro, avanti, testoAvanti) {
     return h('div', { class: 'nav-passi' },
       h('button', { class: 'btn btn-ghost', type: 'button', text: 'Indietro', onclick: function () { vaiPasso(indietro); } }),
@@ -642,7 +991,7 @@
       alta
         ? h('div', null,
           h('p', { text: 'Se la tensione è ancora alta, non restare sola con questa sera: qui sotto trovi una strada breve per calmarti.' }),
-          h('button', { class: 'btn btn-alert', type: 'button', text: 'Stasera è dura', onclick: function () { apriDura(); } }))
+          h('button', { class: 'btn btn-alert', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }))
         : h('p', { text: 'Puoi posare il telefono. Buonanotte.' })));
     radice.appendChild(h('div', { class: 'nav-passi' },
       h('button', { class: 'btn btn-ghost', type: 'button', text: 'Rileggi la serata', onclick: function () { vaiPasso(1); } }),
@@ -691,16 +1040,43 @@
     if (n.nota && String(n.nota).trim()) out.push([t.domanda, String(n.nota).trim()]);
     return out;
   }
+  /* le date con qualcosa da raccontare (serate e momenti della giornata), in ordine */
+  function datePresenti(note, giorni, soloFinite) {
+    var set = {};
+    Object.keys(note).forEach(function (k) { if (!soloFinite || note[k].completa) set[k.split('|')[0]] = 1; });
+    Object.keys(giorni).forEach(function (d) { if (righeGiorno(giorni[d]).length) set[d] = 1; });
+    return Object.keys(set).sort();
+  }
   function disegnaDiario() {
     var el = $('#diario-lista');
     clear(el);
-    var note = tutteLeNote();
-    var chiavi = Object.keys(note).sort().reverse();
-    if (!chiavi.length) {
-      el.appendChild(h('p', { class: 'vuoto', text: 'Qui compariranno le tue serate. Cominciamo da stasera.' }));
+    var note = tutteLeNote(), giorni = tuttiIGiorni();
+    /* le giornate (mattina, pomeriggio, notte) e le serate, dalla più recente; nello stesso giorno la serata sta sopra */
+    var voci = Object.keys(note).map(function (k) { return { o: k.split('|')[0] + '|1|' + k, k: k }; })
+      .concat(Object.keys(giorni).filter(function (d) { return righeGiorno(giorni[d]).length; }).map(function (d) { return { o: d + '|0', d: d }; }))
+      .sort(function (a, b) { return a.o < b.o ? 1 : a.o > b.o ? -1 : 0; });
+    if (!voci.length) {
+      el.appendChild(h('p', { class: 'vuoto', text: 'Qui compariranno le tue giornate e le tue serate.' }));
       return;
     }
-    chiavi.forEach(function (k) {
+    voci.forEach(function (vc) {
+      if (vc.d) {
+        var gd = giorni[vc.d], dlg = h('dl', null);
+        righeGiorno(gd, vc.d).forEach(function (r) { dlg.appendChild(h('dt', { text: r[0] })); dlg.appendChild(h('dd', { text: r[1] })); });
+        var canc = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Elimina questa giornata', onclick: function () {
+          if (!confirm('Eliminare mattina, pomeriggio e notte di questo giorno dal diario? La serata resta.')) return;
+          var tutti = load(K.giorni, {}); if (tutti && typeof tutti === 'object') { delete tutti[vc.d]; save(K.giorni, tutti); }
+          if (G && G.data === vc.d) G = null;
+          disegnaDiario();
+        } });
+        el.appendChild(h('details', { class: 'nota' },
+          h('summary', null,
+            h('span', null, h('span', { class: 'n-data', text: dataLunga(vc.d) }), h('br'), h('span', { class: 'n-tema', text: 'La giornata' })),
+            h('span', { class: 'n-umore', text: umoreGiorno(gd) })),
+          h('div', { class: 'n-corpo' }, dlg, h('div', { class: 'row-btns' }, canc))));
+        return;
+      }
+      var k = vc.k;
       var n = note[k];
       var t = temaPerId(n.tema);
       if (!t) return;
@@ -722,17 +1098,25 @@
     });
   }
   $('#btn-esporta').addEventListener('click', function () {
-    var note = tutteLeNote();
-    var chiavi = Object.keys(note).sort();
+    var note = tutteLeNote(), giorni = tuttiIGiorni();
     var hint = $('#diario-hint');
-    if (!chiavi.length) { hint.textContent = 'Non c’è ancora niente da salvare.'; return; }
+    var date = datePresenti(note, giorni, false);
+    if (!date.length) { hint.textContent = 'Non c’è ancora niente da salvare.'; return; }
     var righe = ['APPRODO – le mie note', ''];
-    chiavi.forEach(function (k) {
-      var n = note[k], t = temaPerId(n.tema);
-      if (!t) return;
-      righe.push(dataLunga(k.split('|')[0]) + ' · ' + t.nome + (n.prima !== null ? ' · tensione ' + breveLiv(n.prima) + (n.dopo !== null ? ' → ' + breveLiv(n.dopo) : '') : ''));
-      righeNota(n).forEach(function (r) { righe.push('  ' + r[0] + ': ' + r[1].replace(/\n/g, ' ')); });
-      righe.push('');
+    date.forEach(function (d) {
+      var rg = giorni[d] ? righeGiorno(giorni[d], d) : [];
+      if (rg.length) {
+        righe.push(dataLunga(d) + ' · la giornata');
+        rg.forEach(function (r) { righe.push('  ' + r[0] + ': ' + r[1]); });
+        righe.push('');
+      }
+      Object.keys(note).filter(function (k) { return k.split('|')[0] === d; }).sort().forEach(function (k) {
+        var n = note[k], t = temaPerId(n.tema);
+        if (!t) return;
+        righe.push(dataLunga(d) + ' · ' + t.nome + (n.prima !== null ? ' · tensione ' + breveLiv(n.prima) + (n.dopo !== null ? ' → ' + breveLiv(n.dopo) : '') : ''));
+        righeNota(n).forEach(function (r) { righe.push('  ' + r[0] + ': ' + r[1].replace(/\n/g, ' ')); });
+        righe.push('');
+      });
     });
     try {
       var blob = new Blob([righe.join('\n')], { type: 'text/plain;charset=utf-8' });
@@ -745,13 +1129,23 @@
 
   /* Riepilogo da condividere con chi mi segue: solo date, tensione e scelte (mai i testi liberi), e solo se lo decido io. */
   $('#btn-riepilogo').addEventListener('click', function () {
-    var note = tutteLeNote();
+    var note = tutteLeNote(), giorni = tuttiIGiorni();
     var hint = $('#diario-hint');
-    var chiavi = Object.keys(note).filter(function (k) { return note[k].completa; }).sort().slice(-30);
-    if (!chiavi.length) { hint.textContent = 'Il riepilogo si crea dopo almeno una serata finita.'; return; }
-    var righe = ['APPRODO – riepilogo delle mie ultime serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa).', ''];
-    var altaPrima = 0, altaDopo = 0, nPrima = 0, nDopo = 0;
-    chiavi.forEach(function (k) {
+    var date = datePresenti(note, giorni, true).slice(-30);
+    if (!date.length) { hint.textContent = 'Il riepilogo si crea dopo almeno un momento della giornata o una serata finita.'; return; }
+    var righe = ['APPRODO – riepilogo delle mie ultime giornate e serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa). Mattina e pomeriggio seguono la diary card: tensione ed emozioni.', ''];
+    var altaPrima = 0, altaDopo = 0, nPrima = 0, nDopo = 0, conta = { mattina: [0, 0], pomeriggio: [0, 0] };
+    date.forEach(function (d) {
+      var gd = giorni[d], rg = gd ? righeGiorno(gd, d) : [];
+      if (rg.length) {
+        righe.push(dataLunga(d) + ' · la giornata');
+        rg.forEach(function (r) { righe.push('  – ' + r[0] + ': ' + r[1]); });
+        ['mattina', 'pomeriggio'].forEach(function (m) { if (gd[m] && gd[m].prima !== null) { conta[m][1]++; if (livello(gd[m].prima) === 2) conta[m][0]++; } });
+        righe.push('');
+      }
+      Object.keys(note).filter(function (k) { return k.split('|')[0] === d && note[k].completa; }).sort().forEach(function (k) { rigaSerata(k); });
+    });
+    function rigaSerata(k) {
       var n = note[k], t = temaPerId(n.tema);
       if (!t) return;
       righe.push(dataLunga(k.split('|')[0]) + ' · ' + t.nome + (n.prima !== null ? ' · tensione ' + breveLiv(n.prima) + (n.dopo !== null ? ' → ' + breveLiv(n.dopo) : '') : ''));
@@ -764,7 +1158,8 @@
         if (sel.length) righe.push('  – ' + (q.domanda.length > 80 ? q.domanda.slice(0, 77) + '…' : q.domanda) + ' → ' + sel.join(' · '));
       });
       righe.push('');
-    });
+    }
+    if (conta.mattina[1] || conta.pomeriggio[1]) righe.push('Tensione alta di mattina: ' + conta.mattina[0] + ' su ' + conta.mattina[1] + '; di pomeriggio: ' + conta.pomeriggio[0] + ' su ' + conta.pomeriggio[1] + '.');
     if (nPrima || nDopo) righe.push('Tensione alta a inizio serata: ' + altaPrima + ' su ' + nPrima + '; a fine serata: ' + altaDopo + ' su ' + nDopo + '.');
     var testo = righe.join('\n');
     function scarica() {
@@ -809,6 +1204,7 @@
   function apriDura() {
     var d = $('#dlg-dura');
     if (!duraPronta) preparaDura();
+    $('#dura-titolo').textContent = nomeDura();   /* «Oggi è dura» di giorno, «Stasera è dura» la sera e la notte */
     apri(d);
     var rb = $('#breath-dura');
     if (!rb.firstChild) respiro(rb, 120);
@@ -941,12 +1337,20 @@
     b.setAttribute('aria-label', t === 'giorno' ? 'Passa al tema notte' : 'Passa al tema chiaro');
     var m = $('#meta-theme'); if (m) m.setAttribute('content', t === 'giorno' ? '#f6f1e8' : '#14131c');
   }
+  /* Di giorno il tema chiaro, la sera e la notte quello scuro. Se lo cambi a mano, la scelta vale
+     fino al momento successivo della giornata (poi torna automatico). */
+  function applicaTemaAuto() {
+    var v = load(K.vista, null), ora = new Date();
+    var manuale = v && typeof v === 'object' && (v.t === 'giorno' || v.t === 'notte') && v.m === momentoDi(ora) && v.d === chiaveData(ora);
+    applicaTema(manuale ? v.t : (diGiorno() ? 'giorno' : 'notte'));
+  }
   $('#btn-theme').addEventListener('click', function () {
     var nuovo = document.documentElement.getAttribute('data-theme') === 'giorno' ? 'notte' : 'giorno';
+    var ora = new Date();
     applicaTema(nuovo);
-    save(K.vista, nuovo);
+    save(K.vista, { t: nuovo, m: momentoDi(ora), d: chiaveData(ora) });
   });
-  applicaTema(load(K.vista, 'notte') === 'giorno' ? 'giorno' : 'notte');
+  applicaTemaAuto();
 
   /* ---------- su Approdo e benvenuto ---------- */
   $('#btn-info').addEventListener('click', function () {
@@ -1051,14 +1455,13 @@
       if (a.getAttribute('data-tab') === vista) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     if (vista === 'stasera') {
-      var voluto = tema || temaDelGiorno(seraDi(new Date()).getDay());
-      if (!S || S.tema.id !== voluto.id || S.data !== chiaveData(seraDi(new Date()))) avviaSerata(voluto);
-      else disegnaSerata();
-    }
+      if (tema) SCELTA = { m: 'sera', auto: momentoDi(new Date()) };   /* un tema aperto dalle «Sere» è la serata */
+      apriMomento(tema ? 'sera' : momentoVoluto(), false, tema);
+    } else applicaTemaAuto();
     if (vista === 'sere') disegnaSere();
     if (vista === 'diario') disegnaDiario();
     if (vista === 'perte') disegnaPerTe();
-    var titoli = { stasera: 'Stasera', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te' };
+    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te' };
     document.title = titoli[vista] + ' · Approdo';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');
@@ -1067,9 +1470,19 @@
   window.addEventListener('hashchange', route);
   window.addEventListener('popstate', function (e) {
     var st = e.state, vista = $('#v-stasera');
-    if (!S || !st || !st.approdo || !vista || vista.hidden) return;
-    S.passo = st.p; S.sub = st.s;
-    disegnaSerata();
+    if (!st || !st.approdo || !vista || vista.hidden) return;
+    if (st.g) {   /* un momento della giornata */
+      if (!GI || !GI.momenti[st.g] || st.g === 'sera') return;
+      MOM = st.g; SCELTA = { m: st.g, auto: momentoDi(new Date()) }; applicaTemaAuto();
+      if (!G || G.momento !== st.g) caricaMomento(st.g);
+      G.sub = st.s;
+      disegnaMomento();
+    } else {
+      if (!S) return;
+      MOM = 'sera'; SCELTA = { m: 'sera', auto: momentoDi(new Date()) }; applicaTemaAuto();
+      S.passo = st.p; S.sub = st.s;
+      disegnaSerata();
+    }
     window.scrollTo(0, 0);
     focusTitolo();
   });

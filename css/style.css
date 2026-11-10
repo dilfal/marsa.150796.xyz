@@ -303,3 +303,12 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .perte-h { margin-top: 28px; }
 #profilo-box { margin: 0 0 12px; }
 #profilo-box textarea { margin-bottom: 12px; }
+/* scelta del momento della giornata (mattina, pomeriggio, sera, notte) */
+.momenti { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+.momento { min-height: 44px; padding: 0 4px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.momento[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tre-minuti { text-align: center; margin-top: 12px; }
+.tre-minuti .punti { justify-content: center; }
+.tm-titolo { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin: 0 0 6px; min-height: 1.4em; }
+.tm-testo { margin: 0 0 12px; }
+.tema-card[data-colore=amber] { border-left-color: var(--accent); }
