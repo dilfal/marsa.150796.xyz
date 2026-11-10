@@ -139,13 +139,24 @@
     return out;
   }
   function numero(v) { return typeof v === 'number' && isFinite(v) && v >= 0 && v <= 10 ? Math.round(v) : null; }
+  /* Le scelte a risposta multipla: { idDomanda: [indici] }. Si tengono solo interi 0-9, senza doppioni. */
+  function scelteSicure(o) {
+    var out = {};
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+    Object.keys(o).slice(0, 60).forEach(function (k) {
+      if (k.length > 40 || !Array.isArray(o[k])) return;
+      var v = o[k].filter(function (i, p, a) { return typeof i === 'number' && i >= 0 && i < 10 && i % 1 === 0 && a.indexOf(i) === p; }).slice(0, 10);
+      if (v.length) out[k] = v;
+    });
+    return out;
+  }
   function tutteLeNote() {
     var n = load(K.note, {}), out = {};
     if (!n || typeof n !== 'object' || Array.isArray(n)) return out;
     Object.keys(n).forEach(function (k) {
       var x = n[k];
       if (!x || typeof x !== 'object' || typeof x.tema !== 'string' || !temaPerId(x.tema)) return;
-      out[k] = { tema: x.tema, prima: numero(x.prima), dopo: numero(x.dopo), campi: stringhe(x.campi), nota: typeof x.nota === 'string' ? x.nota.slice(0, 4000) : '', completa: x.completa === true, t: typeof x.t === 'number' ? x.t : 0 };
+      out[k] = { tema: x.tema, prima: numero(x.prima), dopo: numero(x.dopo), campi: stringhe(x.campi), scelte: scelteSicure(x.scelte), nota: typeof x.nota === 'string' ? x.nota.slice(0, 4000) : '', completa: x.completa === true, t: typeof x.t === 'number' ? x.t : 0 };
     });
     return out;
   }
@@ -177,6 +188,7 @@
       prima: salvata && typeof salvata.prima === 'number' ? salvata.prima : null,
       dopo: salvata && typeof salvata.dopo === 'number' ? salvata.dopo : null,
       campi: salvata && salvata.campi ? salvata.campi : {},
+      scelte: salvata && salvata.scelte ? salvata.scelte : {},
       nota: salvata && salvata.nota ? salvata.nota : '',
       completa: !!(salvata && salvata.completa)
     };
@@ -185,7 +197,7 @@
   function salvaSerata() {
     if (!S) return;
     scriviNota(S.data, S.tema.id, {
-      tema: S.tema.id, prima: S.prima, dopo: S.dopo, campi: S.campi, nota: S.nota,
+      tema: S.tema.id, prima: S.prima, dopo: S.dopo, campi: S.campi, scelte: S.scelte, nota: S.nota,
       completa: S.completa, t: Date.now()
     });
   }
@@ -224,6 +236,69 @@
     return h('div', null,
       h('div', { class: 'scala' }, inp, out),
       h('div', { class: 'scala-ends' }, h('span', { text: 'per niente' }), h('span', { text: 'moltissimo' })));
+  }
+
+  /* ---------- domande a scelta multipla con spiegazione ---------- */
+  function percorso(t) { return (A.Percorso && A.Percorso[t.id]) || null; }
+  function tutteLeDomande(P) { return P.scene.concat([P.chiusura]); }
+
+  /* Una domanda: si tocca una risposta e compare subito la spiegazione. Nessuna risposta è «giusta».
+     Le domande 'kit' (multi) si spuntano più volte. Ogni scelta si salva subito nella serata. */
+  var ETICHETTE_DOMANDA = { riconosci: 'Ti riconosci?', mito: 'Mito o realtà?', kit: 'Scegli quelle che fanno per te' };
+  function cartaDomanda(q) {
+    var scelte = (S.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; });
+    var gruppo = h('div', { class: 'quiz-opz', role: 'group', 'aria-labelledby': 'qd-' + q.id });
+    var spieg = h('div', { class: 'quiz-spieg' });
+    /* il lettore di schermo legge solo l’ultima spiegazione, non tutte a ogni tocco */
+    var annuncio = h('div', { class: 'sr', role: 'status', 'aria-live': 'polite' });
+    var bottoni = [];
+    function mostra() {
+      clear(spieg);
+      scelte.slice().sort().forEach(function (i) {
+        var o = q.opzioni[i];
+        spieg.appendChild(h('div', { class: 'quiz-sp' }, q.multi ? h('b', { text: o.testo }) : null, h('p', { text: o.spiegazione })));
+        if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: 'Stasera è dura', onclick: function () { apriDura(); } }));
+      });
+      bottoni.forEach(function (b, i) { b.setAttribute('aria-pressed', scelte.indexOf(i) >= 0 ? 'true' : 'false'); });
+    }
+    q.opzioni.forEach(function (o, i) {
+      var b = h('button', { class: 'quiz-o', type: 'button', text: o.testo, 'aria-pressed': 'false', onclick: function () {
+        var p = scelte.indexOf(i);
+        if (p >= 0) scelte.splice(p, 1);          /* un secondo tocco toglie la risposta */
+        else { if (!q.multi) scelte.length = 0; scelte.push(i); }
+        if (scelte.length) S.scelte[q.id] = scelte.slice(); else delete S.scelte[q.id];
+        salvaSerata();
+        mostra();
+        annuncio.textContent = p >= 0 ? '' : o.testo + '. ' + o.spiegazione;
+      } });
+      bottoni.push(b);
+      gruppo.appendChild(b);
+    });
+    mostra();
+    return h('div', { class: 'quiz-q' },
+      q.tipo && ETICHETTE_DOMANDA[q.tipo] ? h('p', { class: 'sotto', text: ETICHETTE_DOMANDA[q.tipo] + (q.multi ? ' (anche più di una)' : '') }) : null,
+      h('p', { class: 'quiz-dom', id: 'qd-' + q.id, text: q.domanda }),
+      gruppo, spieg, annuncio);
+  }
+
+  /* Che cosa è emerso stasera: il tag più scelto fra tutte le risposte dà la frase e la piccola cosa per domani. */
+  function riepilogoSerata() {
+    var P = percorso(S.tema);
+    if (!P || !P.riepilogo) return null;
+    var conta = {}, ordine = [];
+    /* Contano solo le scene «Ti riconosci?», dove si descrive com’è. Le abilità del kit, i miti e la chiusura
+       portano il tag del problema che curano: attribuirli alla persona sarebbe sbagliato. */
+    P.scene.filter(function (q) { return q.tipo === 'riconosci'; }).forEach(function (q) {
+      (S.scelte[q.id] || []).forEach(function (i) {
+        var o = q.opzioni[i];
+        if (!o || !o.tag || !P.riepilogo[o.tag]) return;
+        if (!(o.tag in conta)) { conta[o.tag] = 0; ordine.push(o.tag); }
+        conta[o.tag]++;
+      });
+    });
+    if (!ordine.length) return null;
+    ordine.sort(function (a, b) { return conta[b] - conta[a]; });
+    return P.riepilogo[ordine[0]];
   }
 
   function disegnaSerata() {
@@ -287,7 +362,10 @@
         card.appendChild(rb);
         respiro(rb, 180);
       }
-      if (e.campi && e.campi.length) {
+      var P2 = percorso(t);
+      if (P2) {
+        card.appendChild(h('p', { class: 'small', text: 'Qui sotto ci sono alcune domande. Non ci sono risposte giuste o sbagliate: tocca quella che ti somiglia di più e leggi cosa c’è dietro. Puoi saltare quelle che non ti vanno.' }));
+      } else if (e.campi && e.campi.length) {
         card.appendChild(h('h3', { text: 'Se ti va, scrivi' }));
         e.campi.forEach(function (c) {
           var id = 'campo-' + c.id;
@@ -301,21 +379,27 @@
         card.appendChild(h('p', { class: 'small', text: 'Quello che scrivi resta solo sul tuo telefono. Puoi lasciare vuoto qualsiasi campo.' }));
       }
       radice.appendChild(card);
+      if (P2) P2.scene.forEach(function (q) { radice.appendChild(h('div', { class: 'card quiz' }, cartaDomanda(q))); });
       radice.appendChild(navPassi(1, 3, 'Avanti, la buonanotte'));
       return;
     }
 
     /* ---- 3 · buonanotte ---- */
     if (S.passo === 3) {
-      var ta2 = h('textarea', { id: 'nota-fin', rows: '3', placeholder: 'Anche una riga sola.' });
-      ta2.value = S.nota;
-      ta2.addEventListener('input', function () { S.nota = ta2.value; });
-      ta2.addEventListener('blur', salvaSerata);
+      var P3 = percorso(t), domandaFine;
+      if (P3) {
+        domandaFine = cartaDomanda(P3.chiusura);
+      } else {
+        var ta2 = h('textarea', { id: 'nota-fin', rows: '3', placeholder: 'Anche una riga sola.' });
+        ta2.value = S.nota;
+        ta2.addEventListener('input', function () { S.nota = ta2.value; });
+        ta2.addEventListener('blur', salvaSerata);
+        domandaFine = h('div', null, h('label', { class: 'campo', for: 'nota-fin', text: t.domanda }), ta2);
+      }
       var card3 = h('div', { class: 'card' },
         h('p', { class: 'sotto', text: 'Buonanotte' }),
         h('h2', { class: 'passo-titolo', text: 'Per chiudere la serata' }),
-        h('label', { class: 'campo', for: 'nota-fin', text: t.domanda }),
-        ta2,
+        domandaFine,
         h('label', { class: 'campo', for: 'sc-dopo', text: 'Adesso, quanto sei tesa o agitata?' }),
         scalaUmore(S.dopo, function (v) { S.dopo = v; }, 'sc-dopo'));
       radice.appendChild(card3);
@@ -344,14 +428,24 @@
     var t = S.tema;
     var entrambi = S.dopo !== null && S.prima !== null;
     var diff = entrambi ? S.prima - S.dopo : 0;
-    var alta = S.dopo !== null && (S.dopo >= 8 || (entrambi && diff <= -3));
+    var Pf = percorso(t);
+    /* una risposta sensibile (es. un impulso che fa male) conta quanto una tensione alta */
+    var crisiScelta = !!Pf && tutteLeDomande(Pf).some(function (q) {
+      return (S.scelte[q.id] || []).some(function (i) { return q.opzioni[i] && q.opzioni[i].crisi; });
+    });
+    var alta = crisiScelta || (S.dopo !== null && (S.dopo >= 8 || (entrambi && diff <= -3)));
     var riga = !entrambi ? 'Anche essere venuta qui conta.'
       : diff > 0 ? 'Prima eri a ' + S.prima + ', adesso a ' + S.dopo + '. Un po’ più di calma.'
         : diff < 0 ? 'Stasera il livello è salito' + (diff <= -3 ? '' : ' un po’') + ' (da ' + S.prima + ' a ' + S.dopo + '). Capita, e non vuol dire che hai sbagliato qualcosa.'
           : 'Il livello è rimasto uguale (' + S.prima + '). Anche essere venuta qui conta.';
+    var ri = riepilogoSerata();
     radice.appendChild(h('div', { class: 'card fatto' },
       h('h1', { text: 'Serata fatta' }),
       h('p', { class: 'lede', text: riga }),
+      ri ? h('div', { class: 'riepilogo' },
+        h('p', { class: 'sotto', text: 'Quello che è emerso stasera' }),
+        h('p', { text: ri.frase }),
+        h('p', null, h('b', { text: 'Una piccola cosa per domani: ' }), ri.domani)) : null,
       h('div', { class: 'chiusura-frase', text: t.frase }),
       alta
         ? h('div', null,
@@ -386,6 +480,11 @@
       var v = n.campi && n.campi[c.id];
       if (v && String(v).trim()) out.push([c.etichetta, String(v).trim()]);
     });
+    var P = percorso(t);
+    if (P && n.scelte) tutteLeDomande(P).forEach(function (q) {
+      var sel = (n.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; }).map(function (i) { return q.opzioni[i].testo; });
+      if (sel.length) out.push([q.domanda, sel.join(' · ')]);
+    });
     if (n.nota && String(n.nota).trim()) out.push([t.domanda, String(n.nota).trim()]);
     return out;
   }
@@ -406,7 +505,7 @@
       var dl = h('dl', null);
       var righe = righeNota(n);
       righe.forEach(function (r) { dl.appendChild(h('dt', { text: r[0] })); dl.appendChild(h('dd', { text: r[1] })); });
-      if (!righe.length) dl.appendChild(h('dd', { text: 'Nessuna nota scritta in questa serata.' }));
+      if (!righe.length) dl.appendChild(h('dd', { text: 'Nessuna risposta salvata in questa serata.' }));
       var umore = n.prima !== null ? (n.prima + (n.dopo !== null ? ' → ' + n.dopo : '')) : '';
       var cancella = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Elimina questa serata', onclick: function () {
         if (!confirm('Eliminare questa serata dal diario?')) return;
@@ -439,6 +538,42 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
       hint.textContent = 'File salvato. Condividilo solo con chi vuoi tu.';
     } catch (e) { hint.textContent = 'Non sono riuscita a creare il file su questo telefono.'; }
+  });
+
+  /* Riepilogo da condividere con chi mi segue: solo date, tensione e scelte (mai i testi liberi), e solo se lo decido io. */
+  $('#btn-riepilogo').addEventListener('click', function () {
+    var note = tutteLeNote();
+    var hint = $('#diario-hint');
+    var chiavi = Object.keys(note).filter(function (k) { return note[k].completa; }).sort().slice(-30);
+    if (!chiavi.length) { hint.textContent = 'Il riepilogo si crea dopo almeno una serata finita.'; return; }
+    var righe = ['APPRODO – riepilogo delle mie ultime serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione va da 0 (per niente) a 10 (moltissimo).', ''];
+    var sp = 0, sd = 0, nn = 0;
+    chiavi.forEach(function (k) {
+      var n = note[k], t = temaPerId(n.tema);
+      if (!t) return;
+      righe.push(dataLunga(k.split('|')[0]) + ' · ' + t.nome + (n.prima !== null ? ' · tensione ' + n.prima + (n.dopo !== null ? ' → ' + n.dopo : '') : ''));
+      if (n.prima !== null && n.dopo !== null) { sp += n.prima; sd += n.dopo; nn++; }
+      var P = percorso(t);
+      if (P) tutteLeDomande(P).forEach(function (q) {
+        var sel = (n.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; }).map(function (i) { return q.opzioni[i].testo; });
+        if (sel.length) righe.push('  – ' + (q.domanda.length > 80 ? q.domanda.slice(0, 77) + '…' : q.domanda) + ' → ' + sel.join(' · '));
+      });
+      righe.push('');
+    });
+    if (nn) righe.push('Tensione media: prima ' + (sp / nn).toFixed(1).replace('.', ',') + ', dopo ' + (sd / nn).toFixed(1).replace('.', ',') + ' (su ' + nn + (nn === 1 ? ' serata)' : ' serate)') + '.');
+    var testo = righe.join('\n');
+    function scarica() {
+      try {
+        var blob = new Blob([testo], { type: 'text/plain;charset=utf-8' });
+        var a = h('a', { href: URL.createObjectURL(blob), download: 'approdo-riepilogo.txt' });
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        hint.textContent = 'File salvato. Condividilo solo con chi vuoi tu.';
+      } catch (e) { hint.textContent = 'Non sono riuscita a creare il file su questo telefono.'; }
+    }
+    if (navigator.share) {
+      navigator.share({ title: 'Approdo – riepilogo', text: testo }).then(function () { hint.textContent = 'Fatto.'; }).catch(function (e) { if (!e || e.name !== 'AbortError') scarica(); });
+    } else scarica();
   });
 
   /* ---------- STASERA È DURA ---------- */

@@ -1,6 +1,6 @@
 /* Approdo – i sette temi della settimana.
    Testi originali in italiano, parafrasati dalle fonti cliniche (DBT, MBT, attaccamento, modello GET): nessun passo è copiato.
-   Ogni tema ha: lettura breve, esercizio guidato (passi + campi da scrivere, tutti facoltativi), domanda e frase della buonanotte.
+   Ogni tema ha: lettura breve, esercizio guidato (passi; le scene a scelta multipla stanno in js/percorso.js; i vecchi campi restano per leggere le note già salvate), domanda e frase della buonanotte.
    `audio` è il testo da leggere ad alta voce (voce di sintesi); `file` è il percorso dell’mp3 e resta null finché la traccia non esiste. */
 window.Approdo = window.Approdo || {};
 window.Approdo.Temi = [
@@ -17,7 +17,7 @@ window.Approdo.Temi = [
     ],
     esercizio: {
       titolo: 'La mia base e la mia settimana',
-      intro: 'Prenditi qualche minuto. Anche una parola per campo va bene; puoi saltare quello che non ti va.',
+      intro: 'Prenditi qualche minuto. Puoi saltare le domande che non ti vanno.',
       passi: [
         'Pensa a un momento in cui ti sei sentita al sicuro, anche per poco. Dove eri? Chi c’era?',
         'Lascia che quella sensazione si faccia sentire nel corpo: spalle, respiro, mani.',
@@ -81,7 +81,7 @@ window.Approdo.Temi = [
       titolo: 'Nome, fatti, impulso',
       intro: 'Pensa a un momento di oggi in cui hai sentito qualcosa di forte. Non serve scegliere il più forte.',
       passi: [
-        'Cerca il nome più preciso dell’emozione. Se ne trovi due, scrivine due.',
+        'Cerca il nome più preciso dell’emozione. Se ne trovi due, tienile entrambe.',
         'Separa i fatti (ciò che una telecamera avrebbe ripreso) da ciò che hai aggiunto tu.',
         'Nota che cosa l’emozione ti spingeva a fare. Poi pensa a una piccola mossa nella direzione opposta.'
       ],
@@ -116,7 +116,7 @@ window.Approdo.Temi = [
       passi: [
         'Metti in pausa il momento in cui hai sentito che qualcosa cambiava.',
         'Guarda prima te: che cosa sentivi, che cosa ti passava per la testa?',
-        'Poi l’altra persona: invece di una certezza, costruisci tre ipotesi diverse, anche banali.',
+        'Poi l’altra persona: invece di una certezza, costruisci due o tre ipotesi diverse, anche banali.',
         'Per finire, ammetti ciò che non puoi sapere, e resta un attimo in quel «non lo so».'
       ],
       campi: [
@@ -147,8 +147,8 @@ window.Approdo.Temi = [
       titolo: 'Una richiesta con DEAR',
       intro: 'Scegli una cosa piccola che vorresti dire o chiedere nei prossimi giorni. Meglio una piccola che la più grande.',
       passi: [
-        'Scrivi la richiesta con le quattro prime lettere. Frasi corte.',
-        'Leggila ad alta voce, piano, una volta. Senti il tono: deve poter essere detta con calma.',
+        'Preparala a mente con le quattro prime lettere. Frasi corte.',
+        'Dilla ad alta voce, piano, una volta. Senti il tono: deve poter essere detta con calma.',
         'Immagina la risposta dell’altro e pensa a un’alternativa pronta (negoziare).'
       ],
       campi: [
@@ -194,7 +194,7 @@ window.Approdo.Temi = [
       ],
       respiro: true
     },
-    domanda: 'Che cosa mi ha aiutata, questa settimana, ad attraversare un momento difficile? (Se ripensarci ti agita, scrivi solo ciò che ha aiutato.)',
+    domanda: 'Che cosa mi ha aiutata, questa settimana, ad attraversare un momento difficile? (Se ripensarci ti agita, pensa solo a ciò che ha aiutato.)',
     frase: 'Questo momento passa. Io resto.',
     audio: 'Stasera ricordiamoci che i momenti difficili passano, anche quando non sembra. Respira lentamente: dentro per quattro, fuori per sei. Pensa a qualcosa che ti calma: un odore, una coperta, una musica. Sentilo, per un momento. Non devi sentirti bene. Ti basta attraversare quest’ora, un respiro alla volta, senza fare niente che domani ti pesi. Se è stata una settimana dura, hai già fatto la parte più difficile: sei arrivata a stasera. Il momento passa. E tu resti. Buonanotte.',
     file: 'audio/voce/disagio.mp3'
@@ -212,9 +212,9 @@ window.Approdo.Temi = [
     ],
     esercizio: {
       titolo: 'Tre frasi vere',
-      intro: 'Scrivile come le diresti a una persona cara. Poi leggile a voce bassa.',
+      intro: 'Dille come le diresti a una persona cara. Poi, se ti va, ripetile a voce bassa.',
       passi: [
-        'Pensa a un’emozione di oggi e scrivi perché, con la tua storia, ha senso.',
+        'Pensa a un’emozione di oggi e chiediti perché, con la tua storia, ha senso.',
         'Cerca una cosa che hai retto o fatto, anche piccola.',
         'Cerca una cosa che apprezzi di te. Se non la trovi, chiediti che cosa apprezzerebbe di te chi ti vuole bene.'
       ],

@@ -259,3 +259,24 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 @media print {
   .top, .tabs, .sos { display: none; }
 }
+
+/* domande a scelta multipla */
+.quiz .sotto { color: var(--muted); font-size: .85rem; margin: 0 0 4px; }
+.quiz-dom { font-family: var(--serif); font-size: 1.12rem; line-height: 1.5; margin: 0 0 12px; }
+.quiz-opz { display: grid; gap: 8px; }
+.quiz-o {
+  display: block; width: 100%; text-align: left; min-height: 48px; padding: 11px 14px;
+  border-radius: 14px; border: 1.5px solid var(--line); background: transparent; color: var(--text);
+  font: inherit; line-height: 1.4; cursor: pointer;
+}
+.quiz-o:hover { background: var(--card2); }
+.quiz-o[aria-pressed=true] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 600; }
+.quiz-spieg:empty { display: none; }
+.quiz-spieg { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--card2); border-left: 4px solid var(--accent); }
+.quiz-sp + .quiz-sp { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.quiz-sp b { display: block; margin-bottom: 2px; }
+.quiz-sp p { margin: 0; line-height: 1.55; }
+.quiz-spieg .chip { margin-top: 10px; border-color: var(--danger); color: var(--danger); }
+.riepilogo { text-align: left; margin: 16px 0; padding: 14px 16px; border-radius: 12px; background: var(--card2); border-left: 4px solid var(--teal); }
+.riepilogo .sotto { margin: 0 0 6px; color: var(--muted); font-size: .85rem; }
+.riepilogo p { line-height: 1.55; }
