@@ -29,7 +29,8 @@
   }
   function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
   /* Illustrazione in fascia 2:1 in cima a una scheda (img/<id>.webp). Decorativa: alt vuoto; se manca, sparisce. */
-  var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni', 'disagio', 'valore', 'mattina', 'pomeriggio', 'notte'];   /* si allunga a ogni pubblicazione */
+  var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni', 'disagio', 'valore', 'mattina', 'pomeriggio', 'notte',
+    'stop', 'posto', 'amica', 'onda'];   /* si allunga a ogni pubblicazione */
   function fascia(id, cls) {
     if (!id || IMMAGINI_PRONTE.indexOf(id) < 0) return null;
     var box = h('div', { class: 'fascia' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
