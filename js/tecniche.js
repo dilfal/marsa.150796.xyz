@@ -15,9 +15,9 @@ window.Approdo.Tecniche = [
   },
   {
     id: 'posto', titolo: 'Il tuo posto sicuro',
-    intro: 'La mente sa calmare il corpo anche con l’immaginazione. Un luogo tranquillo, vero o inventato, diventa un rifugio da raggiungere a occhi chiusi.',
+    intro: 'La mente sa calmare il corpo anche con l’immaginazione. Un luogo tranquillo, vero o inventato, diventa un rifugio. Puoi farlo a occhi aperti, con lo sguardo su un punto fermo della stanza, oppure chiusi se ti fa stare bene. Dura pochi minuti.',
     passi: [
-      'Chiudi gli occhi e scegli un posto dove ti senti tranquilla: una spiaggia, una stanza, un bosco, anche inventato.',
+      'Tieni lo sguardo su un punto fermo della stanza (o chiudi gli occhi, se ti va) e scegli un posto dove ti senti tranquilla: una spiaggia, una stanza, un bosco, anche inventato.',
       'Guardati intorno: i colori, la luce, l’ora del giorno.',
       'Aggiungi i suoni, gli odori, la temperatura dell’aria. Che cosa senti sotto le mani?',
       'Resta lì per qualche respiro. Se l’immagine si fa difficile, apri gli occhi e guarda la stanza.',

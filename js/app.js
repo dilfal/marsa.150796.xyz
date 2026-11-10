@@ -4,7 +4,7 @@
 
   var A = window.Approdo;
   var TEMI = A.Temi;
-  var K = { nome: 'approdo.nome', visto: 'approdo.visto', vista: 'approdo.vista', note: 'approdo.note', contatti: 'approdo.contatti', piano: 'approdo.piano' };
+  var K = { nome: 'approdo.nome', visto: 'approdo.visto', vista: 'approdo.vista', note: 'approdo.note', contatti: 'approdo.contatti', piano: 'approdo.piano', profilo: 'approdo.profilo' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -150,6 +150,60 @@
     });
     return out;
   }
+  /* ---------- profilo personale: PRIVATO, importato dall’utente sul proprio telefono ----------
+     Non fa parte del sito: i testi personali non stanno mai nel repository pubblico. Qui c’è solo il codice
+     generico che li legge, li ripulisce e li mostra; tutto resta nella memoria di questo telefono. */
+  function txt(v, max) { return typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim().slice(0, max) : ''; }
+  function mappaTesti(o, max, maxChiavi) {
+    var out = {};
+    if (o && typeof o === 'object' && !Array.isArray(o)) Object.keys(o).slice(0, maxChiavi).forEach(function (k) {
+      var t = txt(o[k], max);
+      if (t && k.length <= 40) out[k] = t;
+    });
+    return out;
+  }
+  function elencoTesti(a, max, n) { return (Array.isArray(a) ? a : []).slice(0, n).map(function (x) { return txt(x, max); }).filter(Boolean); }
+  function elencoPersone(a, n) {
+    return (Array.isArray(a) ? a : []).slice(0, n).map(function (c) {
+      if (!c || typeof c !== 'object') return null;
+      var num = txt(c.num, 24);
+      return { nome: txt(c.nome, 60), num: /[0-9]/.test(num) ? num : '', nota: txt(c.nota, 140) };
+    }).filter(function (c) { return c && c.nome; });
+  }
+  function profiloSicuro(raw) {
+    if (!raw || typeof raw !== 'object' || raw.formato !== 'approdo-profilo-1') return null;
+    var P = { formato: 'approdo-profilo-1', creato: txt(raw.creato, 20) };
+    P.aree = (Array.isArray(raw.aree) ? raw.aree : []).slice(0, 14).map(function (a) {
+      if (!a || typeof a !== 'object') return null;
+      var o = { id: txt(a.id, 30), titolo: txt(a.titolo, 100), scala: txt(a.scala, 90), tecnico: txt(a.tecnico, 800), spiegato: txt(a.spiegato, 800), pratica: txt(a.pratica, 600) };
+      return o.titolo && (o.tecnico || o.spiegato) ? o : null;
+    }).filter(Boolean);
+    P.risorse = (Array.isArray(raw.risorse) ? raw.risorse : []).slice(0, 8).map(function (r) {
+      return r && typeof r === 'object' ? { titolo: txt(r.titolo, 80), testo: txt(r.testo, 500) } : null;
+    }).filter(function (r) { return r && r.titolo && r.testo; });
+    P.tecniche = {};
+    if (raw.tecniche && typeof raw.tecniche === 'object' && !Array.isArray(raw.tecniche)) Object.keys(raw.tecniche).slice(0, 20).forEach(function (k) {
+      var x = raw.tecniche[k];
+      if (k.length <= 30 && x && typeof x === 'object') P.tecniche[k] = { nota: txt(x.nota, 600), nascondi: x.nascondi === true };
+    });
+    var ar = raw.arrivo && typeof raw.arrivo === 'object' ? raw.arrivo : {};
+    P.arrivo = {};
+    ['tensione', 'emozioni', 'corpo', 'bisogni', 'giornata', 'sonno', 'ieri'].forEach(function (g) { P.arrivo[g] = mappaTesti(ar[g], 500, 40); });
+    P.scene = {};
+    if (raw.scene && typeof raw.scene === 'object' && !Array.isArray(raw.scene)) Object.keys(raw.scene).slice(0, 80).forEach(function (q) {
+      if (q.length <= 40) P.scene[q] = mappaTesti(raw.scene[q], 500, 12);
+    });
+    var s = raw.sicurezza && typeof raw.sicurezza === 'object' ? raw.sicurezza : null;
+    P.sicurezza = null;
+    if (s) {
+      var S2 = { titolo: txt(s.titolo, 90) || 'Il mio piano per le sere più dure', intro: txt(s.intro, 500), segnali: elencoTesti(s.segnali, 240, 10), passi: elencoTesti(s.passi, 280, 10), persone: elencoPersone(s.persone, 10), servizi: elencoPersone(s.servizi, 8), chiusura: txt(s.chiusura, 320) };
+      if (S2.intro || S2.segnali.length || S2.passi.length || S2.persone.length || S2.servizi.length) P.sicurezza = S2;
+    }
+    return P.aree.length || P.risorse.length || P.sicurezza || Object.keys(P.tecniche).length ? P : null;
+  }
+  var PROF = profiloSicuro(load(K.profilo, null));
+  function perTe(gruppo, id) { return (PROF && PROF.arrivo[gruppo] && PROF.arrivo[gruppo][id]) || ''; }
+
   function tutteLeNote() {
     var n = load(K.note, {}), out = {};
     if (!n || typeof n !== 'object' || Array.isArray(n)) return out;
@@ -274,6 +328,7 @@
   var ETICHETTE_DOMANDA = { riconosci: 'Ti riconosci?', mito: 'Mito o realtà?', kit: 'Scegli quelle che fanno per te' };
   function cartaDomanda(q) {
     var scelte = (S.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; });
+    var pq = PROF && PROF.scene && PROF.scene[q.id];   /* note «Per te» del profilo personale, se importato */
     var gruppo = h('div', { class: 'quiz-opz', role: 'group', 'aria-labelledby': 'qd-' + q.id });
     var spieg = h('div', { class: 'quiz-spieg' });
     /* il lettore di schermo legge solo l’ultima spiegazione, non tutte a ogni tocco */
@@ -289,6 +344,7 @@
           h('p', { text: o.spiegazione }),
           o.passo ? h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), o.passo) : null,
           o.fonte ? h('p', { class: 'fonte', text: o.fonte }) : null,
+          (o.perte || (pq && pq[String(i)])) ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), o.perte || pq[String(i)]) : null,
           q.extra ? q.extra(o) : null));
         if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: 'Stasera è dura', onclick: function () { apriDura(); } }));
       });
@@ -359,7 +415,7 @@
     opz = opz || {};
     return cartaDomanda({
       id: 'ar-' + id, domanda: domanda, multi: !!opz.multi, max: opz.max || 0, extra: opz.extra || null,
-      opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '' }; })
+      opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '', perte: perTe(opz.gruppo, o.id) }; })
     });
   }
   /* Ciò che l’app propone nella pagina stessa, in base al bisogno scelto. */
@@ -401,7 +457,7 @@
       card.appendChild(h('h2', { class: 'passo-titolo', text: S.ieri.etichetta }));
       card.appendChild(h('p', { class: 'intro', text: 'Ti avevo proposto una piccola cosa:' }));
       card.appendChild(h('p', { class: 'quiz-dom', text: S.ieri.domani }));
-      card.appendChild(domandaArrivo('ieri', 'Com’è andata?', AR.ieri));
+      card.appendChild(domandaArrivo('ieri', 'Com’è andata?', AR.ieri, { gruppo: 'ieri' }));
     }
     if (id === 'tensione') {
       card.appendChild(h('h2', { class: 'passo-titolo', text: 'Come stai adesso?' }));
@@ -420,6 +476,8 @@
           f.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
           blocco.appendChild(ol);
         }
+        var pt = perTe('tensione', String(AR.tensione.indexOf(f)));
+        if (pt) blocco.appendChild(h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pt));
         if (f.fonte) blocco.appendChild(h('p', { class: 'fonte', text: f.fonte }));
         if (f.passi) {
           var rb = h('div', { class: 'breath' });
@@ -436,17 +494,17 @@
     if (id === 'emozioni') {
       card.appendChild(h('h2', { class: 'passo-titolo', text: 'Che cosa senti?' }));
       card.appendChild(h('p', { class: 'intro', text: 'Non ci sono emozioni giuste o sbagliate. Scegli fino a tre parole.' }));
-      card.appendChild(domandaArrivo('emo', 'Che emozioni ci sono, adesso?', AR.emozioni, { multi: true, max: 3 }));
-      card.appendChild(domandaArrivo('corpo', 'E dove le senti nel corpo?', AR.corpo));
+      card.appendChild(domandaArrivo('emo', 'Che emozioni ci sono, adesso?', AR.emozioni, { multi: true, max: 3, gruppo: 'emozioni' }));
+      card.appendChild(domandaArrivo('corpo', 'E dove le senti nel corpo?', AR.corpo, { gruppo: 'corpo' }));
     }
     if (id === 'bisogno') {
       card.appendChild(h('h2', { class: 'passo-titolo', text: 'Di che cosa hai bisogno?' }));
-      card.appendChild(domandaArrivo('bisogno', 'Stasera, per te, che cosa conta di più?', AR.bisogni, { extra: extraBisogno }));
+      card.appendChild(domandaArrivo('bisogno', 'Stasera, per te, che cosa conta di più?', AR.bisogni, { extra: extraBisogno, gruppo: 'bisogni' }));
     }
     if (id === 'giornata') {
       card.appendChild(h('h2', { class: 'passo-titolo', text: 'La giornata e la notte' }));
-      card.appendChild(domandaArrivo('giornata', 'Com’è andata la giornata?', AR.giornata));
-      card.appendChild(domandaArrivo('sonno', 'E come hai dormito stanotte?', AR.sonno));
+      card.appendChild(domandaArrivo('giornata', 'Com’è andata la giornata?', AR.giornata, { gruppo: 'giornata' }));
+      card.appendChild(domandaArrivo('sonno', 'E come hai dormito stanotte?', AR.sonno, { gruppo: 'sonno' }));
     }
     radice.appendChild(card);
     var ultimo = i === L.length - 1;
@@ -723,6 +781,29 @@
     } else scarica();
   });
 
+  /* ---------- PER TE: il profilo personale (solo se importato) ---------- */
+  function disegnaPerTe() {
+    var el = $('#perte-lista');
+    clear(el);
+    if (!PROF) return;
+    el.appendChild(h('p', { class: 'lede', text: 'Questo profilo è solo tuo e resta su questo telefono. Spiega come lavorano le tue difficoltà e le tue risorse, con i termini tecnici e le parole semplici accanto.' }));
+    PROF.aree.forEach(function (a) {
+      var corpo = h('div', { class: 'acc-body' });
+      if (a.tecnico) { corpo.appendChild(h('h3', { text: 'In termini tecnici' })); corpo.appendChild(h('p', { text: a.tecnico })); }
+      if (a.spiegato) { corpo.appendChild(h('h3', { text: 'In parole semplici' })); corpo.appendChild(h('p', { text: a.spiegato })); }
+      if (a.pratica) { corpo.appendChild(h('h3', { text: 'Una pratica da due minuti' })); corpo.appendChild(h('p', { text: a.pratica })); }
+      el.appendChild(h('details', { class: 'acc' }, h('summary', { class: 'perte-sum' }, h('span', { text: a.titolo }), a.scala ? h('small', { text: a.scala }) : null), corpo));
+    });
+    if (PROF.risorse.length) {
+      el.appendChild(h('h2', { class: 'perte-h', text: 'Le tue risorse' }));
+      PROF.risorse.forEach(function (r) { el.appendChild(h('div', { class: 'card' }, h('h3', { text: r.titolo }), h('p', { text: r.testo }))); });
+    }
+    if (PROF.sicurezza) {
+      el.appendChild(h('div', { class: 'row-btns' },
+        h('button', { class: 'btn btn-ghost', type: 'button', text: PROF.sicurezza.titolo, onclick: function () { apriDura(); } })));
+    }
+  }
+
   /* ---------- STASERA È DURA ---------- */
   var duraPronta = false;
   function apriDura() {
@@ -755,15 +836,68 @@
     });
     if (!el.firstChild) el.appendChild(h('p', { class: 'small', text: 'Ancora nessuno. Aggiungi una o due persone di cui ti fidi.' }));
   }
-  function preparaDura() {
-    duraPronta = true;
-    /* tecniche in più (STOP, posto sicuro, parlarti come a un’amica, cavalcare l’onda) */
+  /* Le parti della finestra che dipendono dal profilo personale (tecniche con le note «Per te», piano di sicurezza
+     personale): si ricostruiscono quando il profilo viene importato o tolto. */
+  function costruisciDuraProfilo() {
     var extra = $('#tecniche-extra');
+    clear(extra);
     (A.Tecniche || []).forEach(function (tc) {
+      var pn = PROF && PROF.tecniche[tc.id];
+      if (pn && pn.nascondi) return;
       var ol = h('ol', null);
       tc.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
-      extra.appendChild(h('details', { class: 'acc' }, h('summary', { text: tc.titolo }), h('div', { class: 'acc-body' }, h('p', { text: tc.intro }), ol)));
+      extra.appendChild(h('details', { class: 'acc' }, h('summary', { text: tc.titolo }),
+        h('div', { class: 'acc-body' }, h('p', { text: tc.intro }), ol,
+          pn && pn.nota ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pn.nota) : null)));
     });
+    var vecchio = $('#acc-sicurezza');
+    if (vecchio) vecchio.remove();
+    if (!PROF || !PROF.sicurezza) return;
+    var s = PROF.sicurezza, corpo = h('div', { class: 'acc-body' });
+    if (s.intro) corpo.appendChild(h('p', { text: s.intro }));
+    if (s.segnali.length) {
+      var ul = h('ul', null);
+      s.segnali.forEach(function (x) { ul.appendChild(h('li', { text: x })); });
+      corpo.appendChild(h('h3', { text: 'Segnali che sta arrivando' }));
+      corpo.appendChild(ul);
+    }
+    if (s.passi.length) {
+      var ol2 = h('ol', null);
+      s.passi.forEach(function (x) { ol2.appendChild(h('li', { text: x })); });
+      corpo.appendChild(h('h3', { text: 'Che cosa faccio, nell’ordine' }));
+      corpo.appendChild(ol2);
+    }
+    function elenco(titolo, arr) {
+      if (!arr.length) return;
+      corpo.appendChild(h('h3', { text: titolo }));
+      arr.forEach(function (c) {
+        var dettaglio = (c.num || '') + (c.num && c.nota ? ' · ' : '') + (c.nota || '');
+        corpo.appendChild(h('div', { class: 'contatto' }, c.num
+          ? h('a', { class: 'chiama', href: 'tel:' + numeroPulito(c.num) }, h('b', { text: c.nome }), h('span', { text: dettaglio }))
+          : h('div', { class: 'chiama' }, h('b', { text: c.nome }), dettaglio ? h('span', { text: dettaglio }) : null)));
+      });
+    }
+    elenco('Chi posso cercare', s.persone);
+    if (!s.persone.length) {   /* lista vuota: si rimanda a «Le mie persone», che riempie lei sul telefono */
+      corpo.appendChild(h('h3', { text: 'Chi posso cercare' }));
+      corpo.appendChild(h('p', { class: 'small', text: 'Questa lista la scrivi tu, in un momento calmo, con le persone di cui ti fidi.' }));
+      corpo.appendChild(h('button', { class: 'btn btn-ghost', type: 'button', text: 'Apri «Le mie persone»', onclick: function () {
+        var a = $('#acc-contatti'); if (a) { a.setAttribute('open', ''); a.scrollIntoView({ block: 'center' }); }
+      } }));
+    }
+    elenco('Servizi a cui posso rivolgermi', s.servizi);
+    if (!s.servizi.length) {
+      corpo.appendChild(h('h3', { text: 'Servizi a cui posso rivolgermi' }));
+      corpo.appendChild(h('p', { class: 'small', text: 'Da scrivere insieme a chi ti segue (terapeuta, gruppo, centro di salute mentale): finché non c’è, parlane alla prossima seduta.' }));
+    }
+    if (s.chiusura) corpo.appendChild(h('p', { class: 'small', text: s.chiusura }));
+    var acc = h('details', { class: 'acc', id: 'acc-sicurezza', open: true }, h('summary', { text: s.titolo }), corpo);
+    var primo = $('#dlg-dura .acc');
+    primo.parentNode.insertBefore(acc, primo);
+  }
+  function preparaDura() {
+    duraPronta = true;
+    costruisciDuraProfilo();
     disegnaContatti();
     $('#contatti-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -839,6 +973,59 @@
     location.hash = '#stasera';
     location.reload();
   });
+  /* ---------- importazione del profilo personale (resta solo su questo telefono) ---------- */
+  function aggiornaProfiloUI() {
+    $('#tab-perte').hidden = !PROF;
+    $('#profilo-rimuovi').hidden = !PROF;
+    $('#profilo-stato').textContent = PROF
+      ? 'Profilo importato' + (PROF.creato ? ' (' + PROF.creato + ')' : '') + ': ' + PROF.aree.length + (PROF.aree.length === 1 ? ' scheda' : ' schede') + ' in «Per te»' + (PROF.sicurezza ? ' e il tuo piano per le sere più dure.' : '.')
+      : 'Nessun profilo importato.';
+  }
+  function importaProfilo(testo) {
+    var hint = $('#profilo-hint'), raw = null;
+    try { raw = JSON.parse(String(testo)); } catch (e) { hint.textContent = 'Questo testo non è un profilo di Approdo.'; return false; }
+    var P = profiloSicuro(raw);
+    if (!P) { hint.textContent = 'Questo non sembra un profilo di Approdo (formato non riconosciuto).'; return false; }
+    if (!save(K.profilo, P)) { hint.textContent = 'Non sono riuscita a salvarlo su questo telefono.'; return false; }
+    PROF = P;
+    if (duraPronta) costruisciDuraProfilo();
+    aggiornaProfiloUI();
+    $('#profilo-box').hidden = true;
+    $('#profilo-testo').value = '';
+    S = null;   /* le note «Per te» entrano subito nelle risposte */
+    route();
+    hint.textContent = 'Profilo importato. Lo trovi nella scheda «Per te».';
+    return true;
+  }
+  $('#profilo-incolla').addEventListener('click', function () {
+    var b = $('#profilo-box');
+    b.hidden = !b.hidden;
+    if (!b.hidden) $('#profilo-testo').focus();
+  });
+  $('#profilo-conferma').addEventListener('click', function () { importaProfilo($('#profilo-testo').value); });
+  $('#profilo-file').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    if (f.size > 300000) { $('#profilo-hint').textContent = 'Il file è troppo grande per essere un profilo.'; return; }
+    var r = new FileReader();
+    r.onload = function () { importaProfilo(r.result); };
+    r.onerror = function () { $('#profilo-hint').textContent = 'Non sono riuscita a leggere il file.'; };
+    r.readAsText(f);
+    this.value = '';
+  });
+  $('#profilo-rimuovi').addEventListener('click', function () {
+    if (!confirm('Rimuovere il profilo personale da questo telefono? Le tue note restano.')) return;
+    try { localStorage.removeItem(K.profilo); } catch (e) { /* niente */ }
+    PROF = null;
+    if (duraPronta) costruisciDuraProfilo();
+    aggiornaProfiloUI();
+    S = null;
+    $('#profilo-hint').textContent = 'Profilo rimosso.';
+    if (location.hash === '#perte') location.hash = '#stasera'; else route();
+  });
+  A.importaProfilo = importaProfilo;
+  aggiornaProfiloUI();
+
   $('#ben-dura').addEventListener('click', function () { apriDura(); });
   $('#ben-form').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -850,13 +1037,14 @@
   $('#dlg-benvenuto').addEventListener('cancel', function (e) { e.preventDefault(); });
 
   /* ---------- navigazione ---------- */
-  var VISTE = ['stasera', 'sere', 'diario'];
+  var VISTE = ['stasera', 'sere', 'diario', 'perte'];
   function route() {
     fermaRespiri();
     var hash = location.hash.replace(/^#/, '');
     var vista = 'stasera', tema = null;
     if (hash.indexOf('tema=') === 0) { tema = temaPerId(hash.slice(5)); vista = 'stasera'; }
     else if (VISTE.indexOf(hash) >= 0) vista = hash;
+    if (vista === 'perte' && !PROF) vista = 'stasera';   /* «Per te» esiste solo con un profilo importato */
 
     VISTE.forEach(function (v) { $('#v-' + v).hidden = v !== vista; });
     document.querySelectorAll('.tabs a').forEach(function (a) {
@@ -869,7 +1057,8 @@
     }
     if (vista === 'sere') disegnaSere();
     if (vista === 'diario') disegnaDiario();
-    var titoli = { stasera: 'Stasera', sere: 'Le sette sere', diario: 'Il mio diario' };
+    if (vista === 'perte') disegnaPerTe();
+    var titoli = { stasera: 'Stasera', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te' };
     document.title = titoli[vista] + ' · Approdo';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');

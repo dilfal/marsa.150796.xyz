@@ -213,13 +213,14 @@ label.campo small { display: block; font-weight: 400; color: var(--muted); }
 /* barra in basso */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   background: color-mix(in srgb, var(--bg2) 94%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 .tabs a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: var(--tabs-h); color: var(--muted); text-decoration: none; font-size: .78rem; }
 .tabs a[aria-current=page] { color: var(--accent); }
+.tabs a[hidden] { display: none; }
 
 /* finestre */
 dialog {
@@ -244,8 +245,8 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .five li { padding: 6px 0; }
 .five b { display: inline-block; min-width: 1.4em; color: var(--accent); font-family: var(--serif); font-size: 1.15rem; }
 .contatto { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
-.contatto a.chiama { flex: 1; display: flex; flex-direction: column; text-decoration: none; color: var(--text); min-height: 44px; justify-content: center; }
-.contatto a.chiama span { color: var(--muted); font-size: .88rem; }
+.contatto .chiama { flex: 1; display: flex; flex-direction: column; text-decoration: none; color: var(--text); min-height: 44px; justify-content: center; }
+.contatto .chiama span { color: var(--muted); font-size: .88rem; }
 .contatto .del { color: var(--muted); }
 .contatti-form { display: grid; gap: 12px; margin-top: 12px; }
 .numero { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -295,3 +296,10 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .app-link { display: block; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); text-decoration: none; color: var(--text); }
 .app-link b { display: block; font-family: var(--serif); font-size: 1.1rem; color: var(--accent); }
 .app-link span { color: var(--muted); font-size: .92rem; }
+/* profilo personale («Per te») */
+.quiz-perte { margin: 10px 0 0 !important; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--teal) 14%, transparent); border-left: 3px solid var(--teal); }
+.perte-sum { flex-wrap: wrap; gap: 2px 12px; }
+.perte-sum small { display: block; width: 100%; font-weight: 400; color: var(--muted); }
+.perte-h { margin-top: 28px; }
+#profilo-box { margin: 0 0 12px; }
+#profilo-box textarea { margin-bottom: 12px; }

@@ -50,6 +50,12 @@
     <div id="sere-lista" class="sere-lista"></div>
   </section>
 
+  <!-- ================= PER TE (solo con un profilo personale importato) ================= -->
+  <section class="view" id="v-perte" hidden>
+    <h1>Per te</h1>
+    <div id="perte-lista"></div>
+  </section>
+
   <!-- ================= DIARIO ================= -->
   <section class="view" id="v-diario" hidden>
     <h1>Il mio diario</h1>
@@ -67,6 +73,7 @@
 <nav class="tabs" aria-label="Sezioni">
   <a href="#stasera" data-tab="stasera"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Stasera</span></a>
   <a href="#sere" data-tab="sere"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Sere</span></a>
+  <a href="#perte" data-tab="perte" id="tab-perte" hidden><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7C19.5 15.9 12 20.5 12 20.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Per te</span></a>
   <a href="#diario" data-tab="diario"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 4.5h10.5a1.5 1.5 0 0 1 1.5 1.5v13.5H7.5A1.5 1.5 0 0 1 6 18z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 9h5M9.5 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Diario</span></a>
 </nav>
 
@@ -201,6 +208,21 @@
       <input id="info-nome" type="text" maxlength="30" placeholder="Il tuo nome">
       <button class="btn" id="info-nome-salva" type="button">Salva</button>
     </div>
+    <h3>Il tuo profilo personale</h3>
+    <p class="small" id="profilo-stato">Nessun profilo importato.</p>
+    <p class="small">Se chi ti segue ti ha dato un file di profilo, importalo qui: resta solo su questo telefono, senza invio e senza server.</p>
+    <div class="row-btns">
+      <label class="btn btn-ghost" for="profilo-file" id="profilo-file-etichetta">Importa da file</label>
+      <input id="profilo-file" class="sr" type="file">
+      <button class="btn btn-ghost" id="profilo-incolla" type="button">Incolla il testo</button>
+      <button class="btn btn-ghost" id="profilo-rimuovi" type="button" hidden>Rimuovi il profilo</button>
+    </div>
+    <div id="profilo-box" hidden>
+      <label class="sr" for="profilo-testo">Testo del profilo</label>
+      <textarea id="profilo-testo" rows="5" placeholder="Incolla qui il profilo"></textarea>
+      <button class="btn btn-block" id="profilo-conferma" type="button">Importa</button>
+    </div>
+    <p class="small" id="profilo-hint" role="status" aria-live="polite"></p>
     <h3>I tuoi dati</h3>
     <p class="small">Tutto resta nel telefono (memoria del browser). Nessun server, nessun account. Se cancelli i dati del sito, le tue note spariscono.</p>
     <div class="row-btns">

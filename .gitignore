@@ -3,3 +3,9 @@
 docs/
 tools/
 audio_grezzo/
+
+# DATI RISERVATI della paziente: MAI nel repository (il sito e' pubblico). Il profilo personale resta fuori da qui, in C:\Users\df\Dev\Privato.
+privato/
+profilo*.json
+*.profilo
+referto*
