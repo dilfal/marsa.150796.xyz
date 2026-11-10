@@ -1,0 +1,5 @@
+# Su GitHub Pages ogni file del repo diventa pubblico: restano solo sul computer.
+*.md
+docs/
+tools/
+audio_grezzo/
