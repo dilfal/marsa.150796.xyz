@@ -1,5 +1,5 @@
 /* Approdo – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'approdo-v17';
+var CACHE = 'approdo-v18';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
@@ -11,7 +11,8 @@ var TRACCE = [
   'audio/voce/relazioni.mp3', 'audio/voce/disagio.mp3', 'audio/voce/valore.mp3'
 ];
 /* Illustrazioni: facoltative come le tracce (se una non c’è ancora, l’app si installa lo stesso). */
-var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni'].map(function (n) { return 'img/' + n + '.webp'; });
+var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni', 'disagio', 'valore',
+  'mattina', 'pomeriggio', 'notte'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */
