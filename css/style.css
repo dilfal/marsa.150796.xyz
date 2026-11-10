@@ -138,7 +138,6 @@ label.campo small { display: block; font-weight: 400; color: var(--muted); }
 .tema-card[data-colore=violet] { border-left-color: var(--violet); }
 .tema-card .nome { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin: 0; }
 .tema-card .sotto { color: var(--muted); margin: 2px 0 0; }
-.tema-card .fonte { margin-top: 10px; font-size: .82rem; color: var(--muted); }
 .segui { display: flex; align-items: center; gap: 6px; margin: 0 0 14px; }
 .punti { display: flex; gap: 6px; margin: 4px 0 18px; }
 .punti i { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
@@ -287,7 +286,6 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 
 /* Arrivo: piccolo passo, fonte, rimandi alle altre app */
 .quiz-passo { margin: 10px 0 0 !important; }
-.quiz-sp .fonte { margin: 10px 0 0; font-size: .8rem; color: var(--muted); }
 .quiz-sp .breath { margin-top: 12px; }
 .quiz-sp .btn { margin-top: 12px; }
 .quiz-q + .quiz-q { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -312,3 +310,5 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .tm-titolo { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin: 0 0 6px; min-height: 1.4em; }
 .tm-testo { margin: 0 0 12px; }
 .tema-card[data-colore=amber] { border-left-color: var(--accent); }
+/* Le fonti: sempre piccole e in corsivo, ovunque compaiano. */
+.fonte { margin: 10px 0 0; font-size: .76rem; line-height: 1.45; font-style: italic; color: var(--muted); }

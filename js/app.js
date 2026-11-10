@@ -349,7 +349,7 @@
           q.multi ? h('b', { text: o.testo }) : null,
           h('p', { text: o.spiegazione }),
           o.passo ? h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), o.passo) : null,
-          o.fonte ? h('p', { class: 'fonte', text: o.fonte }) : null,
+          (o.fonte || q.fonte) ? h('p', { class: 'fonte', text: o.fonte || q.fonte }) : null,
           (o.perte || (pq && pq[String(i)])) ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), o.perte || pq[String(i)]) : null,
           q.extra ? q.extra(o) : null));
         if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }));
@@ -539,6 +539,7 @@
         h('p', { class: 'sotto', text: 'Lettura · ' + t.nome }),
         h('h2', { class: 'passo-titolo', text: t.sotto }),
         testo,
+        t.fonte ? h('p', { class: 'fonte', text: 'Fonti: ' + t.fonte }) : null,
         t.avviso ? h('div', { class: 'avviso', text: t.avviso }) : null));
       radice.appendChild(navPassi(0, 2, 'Avanti, l’esercizio'));
       return;
@@ -1244,6 +1245,7 @@
       tc.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
       extra.appendChild(h('details', { class: 'acc' }, h('summary', { text: tc.titolo }),
         h('div', { class: 'acc-body' }, h('p', { text: tc.intro }), ol,
+          tc.fonte ? h('p', { class: 'fonte', text: tc.fonte }) : null,
           pn && pn.nota ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pn.nota) : null)));
     });
     var vecchio = $('#acc-sicurezza');

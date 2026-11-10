@@ -1,21 +1,24 @@
 /* Approdo – tecniche brevi in più per la finestra «Stasera è dura».
    Da fare a letto o sul divano, in due-cinque minuti, senza materiali e senza sforzo fisico.
-   Testi originali in italiano, parafrasati dalle fonti cliniche (DBT e altre): nessun passo è copiato. */
+   Testi originali in italiano, parafrasati dalle fonti cliniche (DBT e altre): nessun passo è copiato.
+   `fonte` (autore, anno, opera, argomento) è mostrata in piccolo sotto i passi. */
 window.Approdo = window.Approdo || {};
 window.Approdo.Tecniche = [
   {
     id: 'stop', titolo: 'STOP: fermarti trenta secondi',
-    intro: 'Quando una spinta forte ti chiede di agire subito, trenta secondi di pausa ti ridanno la scelta. Si fa anche a letto, senza alzarti.',
+    intro: 'Quando una spinta forte, cioè un impulso ad agire subito, ti chiede di fare qualcosa, trenta secondi di pausa ti ridanno la scelta: tra l’emozione e l’azione si apre uno spazio. Si fa anche a letto, senza alzarti.',
+    fonte: 'Linehan (2015), DBT Skills Training Manual · Tolleranza del disagio: abilità STOP',
     passi: [
       'Fermati: resta immobile come sei, anche solo per un respiro. Non devi fare niente.',
       'Fai un passo indietro, anche solo con la mente: un’espirazione lunga, lo sguardo che si allarga.',
       'Osserva: che cosa senti nel corpo, che cosa ti passa per la testa? Dagli un nome, senza giudicare.',
-      'Procedi con calma: chiediti quale scelta ti farà stare meglio domani, non solo adesso.'
+      'Procedi con consapevolezza: chiediti quale scelta ti farà stare meglio domani, non solo adesso.'
     ]
   },
   {
     id: 'posto', titolo: 'Il tuo posto sicuro',
-    intro: 'La mente sa calmare il corpo anche con l’immaginazione. Un luogo tranquillo, vero o inventato, diventa un rifugio. Puoi farlo a occhi aperti, con lo sguardo su un punto fermo della stanza, oppure chiusi se ti fa stare bene. Dura pochi minuti.',
+    intro: 'La mente sa calmare il corpo anche con l’immaginazione: un luogo tranquillo, vero o inventato, richiamato con tutti i sensi, diventa un rifugio (nella DBT è un modo di «migliorare il momento»). Puoi farlo a occhi aperti, con lo sguardo su un punto fermo della stanza, oppure chiusi se ti fa stare bene. Dura pochi minuti.',
+    fonte: 'Linehan (2015), DBT Skills Training Manual · Tolleranza del disagio: migliorare il momento (immaginazione)',
     passi: [
       'Tieni lo sguardo su un punto fermo della stanza (o chiudi gli occhi, se ti va) e scegli un posto dove ti senti tranquilla: una spiaggia, una stanza, un bosco, anche inventato.',
       'Guardati intorno: i colori, la luce, l’ora del giorno.',
@@ -26,9 +29,10 @@ window.Approdo.Tecniche = [
   },
   {
     id: 'amica', titolo: 'Parlarti come a un’amica',
-    intro: 'Con noi stesse usiamo spesso parole che non diremmo mai a chi amiamo. Per qualche minuto proviamo a cambiare voce.',
+    intro: 'Con noi stesse usiamo spesso parole che non diremmo mai a chi amiamo, e l’autocritica tiene alta la vergogna. Per qualche minuto proviamo la strada opposta: l’autocompassione, cioè trattarti con la gentilezza che daresti a una persona cara.',
+    fonte: 'Linehan (2015), DBT Skills Training Manual · Efficacia interpersonale: validazione e autovalidazione; Aguirre e Galen (2013), Mindfulness for Borderline Personality Disorder · autocompassione',
     passi: [
-      'Nota che cosa ti stai dicendo adesso, in silenzio. Ascolta il tono, senza giudicarlo.',
+      'Nota che cosa ti stai dicendo adesso, in silenzio: è il tuo dialogo interno. Ascolta il tono, senza giudicarlo.',
       'Immagina che un’amica cara ti racconti la tua stessa serata. Che cosa le diresti?',
       'Dillo a te, con le stesse parole e la stessa voce: «Ha senso che tu ti senta così, perché…».',
       'Se ti va, appoggia una mano sul petto mentre lo dici. Non serve crederci del tutto: basta provare.'
@@ -36,7 +40,8 @@ window.Approdo.Tecniche = [
   },
   {
     id: 'onda', titolo: 'Cavalcare l’onda',
-    intro: 'Le spinte forti sembrano infinite, ma non lo sono: salgono, toccano un punto massimo e poi calano. Puoi guardarle passare senza obbedire.',
+    intro: 'Le spinte forti sembrano infinite, ma non lo sono: salgono, toccano un picco e poi calano. «Cavalcare l’onda» vuol dire osservare l’impulso come un evento passeggero, senza obbedirgli e senza combatterlo.',
+    fonte: 'Linehan (2015), DBT Skills Training Manual · Regolazione emotiva: mindfulness delle emozioni correnti («cavalcare l’onda»); Aguirre e Galen (2013), Mindfulness for Borderline Personality Disorder · RIDE THE WAVE',
     passi: [
       'Nota la spinta e chiamala per nome: «È una spinta. Non un ordine».',
       'Immagina un’onda che sale. Respira piano e cerca dove la senti nel corpo.',
