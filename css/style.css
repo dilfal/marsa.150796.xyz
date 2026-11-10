@@ -49,6 +49,7 @@ body {
   font: 17px/1.55 var(--font);
   padding-bottom: calc(var(--tabs-h) + 88px + env(safe-area-inset-bottom));
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
 }
 h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.25; margin: 0 0 .5em; }
