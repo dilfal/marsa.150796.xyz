@@ -235,10 +235,3 @@ window.Approdo.Temi = [
 
 /* Giorni della settimana, per i testi. Indice = Date.getDay(). */
 window.Approdo.Giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-
-/* Numeri utili in Italia (da ricontrollare ogni tanto). */
-window.Approdo.Numeri = [
-  { nome: 'Emergenza', num: '112', info: 'Se sei in pericolo o pensi di farti del male. Sempre attivo, anche di notte, quando le linee di ascolto sono chiuse.' },
-  { nome: 'Telefono Amico Italia', num: '0223272327', vis: '02 2327 2327', info: 'Ascolto ogni giorno dalle 9 a mezzanotte. C’è anche WhatsApp (324 011 7252), con orari propri.' },
-  { nome: 'Samaritans Roma', num: '0677208977', vis: '06 7720 8977', info: 'Ascolto telefonico e anonimo, di solito dalle 13 alle 22. Se non risponde, prova l’altro numero o chiama il 112.' }
-];

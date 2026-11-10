@@ -14,6 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" href="icons/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -63,11 +64,6 @@
 
 </main>
 
-<button class="sos" id="btn-dura" type="button" aria-haspopup="dialog">
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8.1a4.3 4.3 0 0 1 7.5 2.7C19.5 16.4 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-  <span>Stasera è dura</span>
-</button>
-
 <nav class="tabs" aria-label="Sezioni">
   <a href="#stasera" data-tab="stasera"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Stasera</span></a>
   <a href="#sere" data-tab="sere"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Sere</span></a>
@@ -85,14 +81,8 @@
     </div>
     <p class="lede">Va bene così: sei venuta qui. Facciamo una cosa alla volta, adesso. Non devi risolvere niente stasera.</p>
 
-    <div class="alert">
-      <strong>Se pensi di farti del male o sei in pericolo, chiama subito il 112.</strong>
-      <p class="small">Vale anche di notte. Se hai già preso dei farmaci o ti sei fatta del male, chiama il 112 o vai al pronto soccorso, anche se in questo momento ti senti bene.</p>
-      <a class="btn btn-alert" href="tel:112">Chiama il 112</a>
-    </div>
-
     <details class="acc" open>
-      <summary>1 · Respira (due minuti)</summary>
+      <summary>Respira (due minuti)</summary>
       <div class="acc-body">
         <p>Dentro per quattro, fuori per sei. Fuori più lungo di dentro: il corpo capisce che è al sicuro.</p>
         <div class="breath" id="breath-dura"></div>
@@ -100,7 +90,7 @@
     </details>
 
     <details class="acc">
-      <summary>2 · Cinque cose intorno a te</summary>
+      <summary>Cinque cose intorno a te</summary>
       <div class="acc-body">
         <p>Guardati intorno e nomina, piano:</p>
         <ol class="five">
@@ -114,7 +104,7 @@
     </details>
 
     <details class="acc">
-      <summary>3 · Dare una scossa al corpo</summary>
+      <summary>Dare una scossa al corpo</summary>
       <div class="acc-body">
         <p>Se la tensione è alta e la testa non ascolta, parti dal corpo:</p>
         <ul>
@@ -127,7 +117,7 @@
     </details>
 
     <details class="acc">
-      <summary>4 · Una cosa che aiuta, subito</summary>
+      <summary>Una cosa che aiuta, subito</summary>
       <div class="acc-body">
         <p>Scegline una, e falla adesso:</p>
         <ul>
@@ -140,8 +130,10 @@
       </div>
     </details>
 
+    <div id="tecniche-extra"></div>
+
     <details class="acc" id="acc-contatti">
-      <summary>5 · Le mie persone</summary>
+      <summary>Le mie persone</summary>
       <div class="acc-body">
         <p>Chi posso cercare stasera? Aggiungi i nomi e i numeri (restano solo sul tuo telefono).</p>
         <div id="contatti-lista"></div>
@@ -155,13 +147,19 @@
       </div>
     </details>
 
-    <details class="acc">
-      <summary>6 · Numeri di ascolto</summary>
-      <div class="acc-body" id="numeri-utili"></div>
+    <details class="acc" id="acc-app">
+      <summary>Un aiuto in un’altra app</summary>
+      <div class="acc-body">
+        <p>Se ti fa bene, ci sono due posti calmi già tuoi. Si aprono in un’altra scheda.</p>
+        <div class="app-link-list">
+          <a class="app-link" href="https://sakina.150796.xyz/" target="_blank" rel="noopener"><b>Sakina</b><span>Recitazioni coraniche con sottofondo di natura e timer di spegnimento.</span></a>
+          <a class="app-link" href="https://bonaccia.150796.xyz/" target="_blank" rel="noopener"><b>Bonaccia</b><span>Suoni, respiro e piccoli esercizi per ritrovare la calma.</span></a>
+        </div>
+      </div>
     </details>
 
     <details class="acc" id="acc-piano">
-      <summary>7 · Il mio piano per le sere dure</summary>
+      <summary>Il mio piano per le sere dure</summary>
       <div class="acc-body">
         <p>Scrivilo con calma in un momento migliore, magari con chi ti segue. Qui lo ritroverai.</p>
         <div id="piano-campi"></div>
@@ -180,8 +178,8 @@
     <p>Come ti chiami? Serve solo per salutarti, e resta sul tuo telefono.</p>
     <label class="sr" for="ben-nome">Il tuo nome</label>
     <input id="ben-nome" type="text" maxlength="30" placeholder="Il tuo nome (se vuoi)" enterkeyhint="done">
-    <button class="btn" type="submit">Iniziamo</button>
-    <button class="btn btn-ghost" type="button" id="ben-dura">Stasera è dura: aiutami subito</button>
+    <button class="btn btn-block" type="submit">Iniziamo</button>
+    <button class="btn btn-ghost btn-block" type="button" id="ben-dura">Stasera è dura: aiutami subito</button>
     <p class="small">Nessun account, nessun invio di dati: le tue note restano su questo telefono.</p>
   </form>
 </dialog>
@@ -218,6 +216,8 @@
 <script src="js/version.js"></script>
 <script src="js/contenuti.js"></script>
 <script src="js/percorso.js"></script>
+<script src="js/arrivo.js"></script>
+<script src="js/tecniche.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

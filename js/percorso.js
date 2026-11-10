@@ -1,6 +1,6 @@
 /* Approdo – il percorso della sera: scene a scelta (singola o multipla) con spiegazione psicoeducativa immediata,
    una domanda di chiusura e un riepilogo di ciò che è emerso (non un punteggio, non una diagnosi).
-   Testi originali (parafrasi delle fonti cliniche), nessun passo copiato. Gli `id` sono le chiavi delle risposte salvate: non rinominarli.
+   Testi originali (parafrasi delle fonti cliniche), nessun passo copiato. Le risposte si salvano per posizione (indice) in ogni elenco di opzioni: dopo la pubblicazione non riordinare e non inserire voci in mezzo, aggiungi solo in fondo.
    `tag` di ogni opzione → voce di `riepilogo` dello stesso tema. `crisi: true` → l’app propone «Stasera è dura». */
 window.Approdo = window.Approdo || {};
 window.Approdo.Percorso = {
@@ -330,7 +330,7 @@ window.Approdo.Percorso = {
         opzioni: [
           { testo: 'Faccio subito qualcosa: scrivo, chiamo, decido.', tag: 'impulso', spiegazione: 'Quando il dolore è forte, agire subito sembra l’unico modo per farlo smettere: è una spinta molto umana. Ma le decisioni prese a caldo pesano di più il giorno dopo. Prova STOP: fermati, fai un passo indietro, osserva che cosa succede dentro e fuori, poi procedi con consapevolezza. Sono trenta secondi che ti danno tempo.' },
           { testo: 'Respiro piano, con l’espirazione più lunga.', tag: 'corpo', spiegazione: 'È uno dei gesti più utili quando l’attivazione è alta: il respiro lento parla al corpo prima che alla mente. È la P di TIPP. Se ti viene spontaneo, è una risorsa da riconoscerti. Se non basta, puoi aggiungere un senso: una coperta, un odore, un tè caldo. Non cambia la notizia, ma ti dà tempo.' },
-          { testo: 'Mi viene la spinta a fare qualcosa che mi farebbe male.', tag: 'impulso', crisi: true, spiegazione: 'Quando il dolore sale così, la spinta a farlo smettere a ogni costo si capisce, e non dice che sei cattiva o sbagliata. Ma non sei sola con questa spinta. Adesso puoi aprire «Stasera è dura»: c’è il 112 e ci sono voci che ascoltano. Puoi anche cercare una persona di cui ti fidi. La spinta è un’onda: sale, e poi scende.' },
+          { testo: 'Mi viene la spinta a fare qualcosa che mi farebbe male.', tag: 'impulso', crisi: true, spiegazione: 'Quando il dolore sale così, la spinta a farlo smettere a ogni costo si capisce, e non dice che sei cattiva o sbagliata. Ma non sei sola con questa spinta. Adesso puoi aprire «Stasera è dura»: ci sono tecniche per far scendere l’onda. Puoi anche cercare una persona di cui ti fidi. La spinta è un’onda: sale, e poi scende.' },
           { testo: 'Mi dico che non dovrebbe succedere a me, non è giusto.', tag: 'resiste', spiegazione: 'È un pensiero naturale davanti al dolore, e spesso è anche vero che non è giusto. Ma restare a lungo nel «non dovrebbe essere così» consuma energie e fa crescere la sofferenza. L’accettazione radicale non vuol dire approvare: vuol dire riconoscere che è successo, per poter scegliere che cosa fare adesso e come proteggerti.' }
         ]
       },
