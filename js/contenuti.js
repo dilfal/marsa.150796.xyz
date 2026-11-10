@@ -75,7 +75,7 @@ window.Approdo.Temi = [
       'Le emozioni non sono nemiche: sono messaggi. La paura dice «attenzione», la tristezza «ho perso qualcosa», la rabbia «un limite è stato superato». Quando arrivano in fretta e fortissime, però, è difficile capire che cosa vogliano dirci.',
       'Primo passo: un nome. Uno solo, il più preciso che trovi. Non «sto male», ma «delusione», «solitudine», «vergogna». Dare un nome rende l’emozione più piccola e più maneggevole, e il corpo si calma un poco.',
       'Secondo passo: controllare i fatti. L’emozione è sempre vera, ha senso che tu la senta. L’interpretazione che la accompagna può non esserlo. Che cosa è successo davvero? Che cosa ho aggiunto io? Quanto è probabile ciò che temo?',
-      'Terzo passo: se agire come l’emozione spinge peggiorerebbe le cose, si prova l’azione opposta, in piccolo. Se la vergogna ti spinge a nasconderti, fai un passetto verso qualcuno. Se la tristezza ti spinge a restare chiusa, apri una finestra. E il corpo conta: sonno, cibo, movimento (la sigla inglese è PLEASE) ti rendono meno vulnerabile. Curare le malattie fisiche e prendere i farmaci prescritti, come ti hanno indicato, fa parte della stessa cura; da evitare sono alcol e sostanze che alterano l’umore.'
+      'Terzo passo: se agire come l’emozione spinge peggiorerebbe le cose, si prova l’azione opposta, in piccolo. Se la vergogna ti spinge a nasconderti, fai un passetto verso qualcuno. Se la tristezza ti spinge a restare chiusa, apri una finestra. E il corpo conta: sonno, cibo, movimento (la sigla inglese è PLEASE) ti rendono meno vulnerabile. Curare le malattie fisiche e prendere i farmaci prescritti, come ti hanno indicato, fa parte della stessa cura.'
     ],
     esercizio: {
       titolo: 'Nome, fatti, impulso',
