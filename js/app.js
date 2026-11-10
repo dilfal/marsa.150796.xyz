@@ -28,6 +28,15 @@
     return el;
   }
   function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+  /* Illustrazione in fascia 2:1 in cima a una scheda (img/<id>.webp). Decorativa: alt vuoto; se manca, sparisce. */
+  var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni'];   /* si allunga a ogni pubblicazione */
+  function fascia(id, cls) {
+    if (!id || IMMAGINI_PRONTE.indexOf(id) < 0) return null;
+    var box = h('div', { class: 'fascia' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
+    box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', decoding: 'async',
+      onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
+    return box;
+  }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
   /* La «sera» finisce alle 5 del mattino: dopo mezzanotte conta ancora la serata di ieri. */
@@ -286,6 +295,7 @@
         h('h1', { text: saluto() }),
         sceltaMomento()),
       h('div', { class: 'card tema-card', 'data-colore': t.colore },
+        fascia(t.id),
         h('p', { class: 'sotto', text: S.oggi ? 'Il tema di stasera' : 'Un altro tema, per stasera' }),
         h('p', { class: 'nome', text: t.nome }),
         h('p', { class: 'sotto', text: t.sotto }),
@@ -536,6 +546,7 @@
       var testo = h('div', { class: 'testo' });
       t.lettura.forEach(function (p) { testo.appendChild(h('p', { text: p })); });
       radice.appendChild(h('div', { class: 'card tema-card', 'data-colore': t.colore },
+        fascia(t.id),
         h('p', { class: 'sotto', text: 'Lettura · ' + t.nome }),
         h('h2', { class: 'passo-titolo', text: t.sotto }),
         testo,
@@ -811,6 +822,7 @@
     if (i === 0 || id === 'fine') radice.appendChild(heroMomento());
     if (id === 'fine') { disegnaFineMomento(); return; }
     if (i === 0) radice.appendChild(h('div', { class: 'card tema-card', 'data-colore': G.momento === 'notte' ? 'blue' : G.momento === 'mattina' ? 'amber' : 'teal' },
+      fascia(G.momento),
       h('p', { class: 'sotto', text: M.nome }),
       h('p', { class: 'nome', text: M.titolo }),
       h('p', { class: 'sotto', text: M.sotto }),
@@ -1244,7 +1256,7 @@
       var ol = h('ol', null);
       tc.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
       extra.appendChild(h('details', { class: 'acc' }, h('summary', { text: tc.titolo }),
-        h('div', { class: 'acc-body' }, h('p', { text: tc.intro }), ol,
+        h('div', { class: 'acc-body' }, fascia(tc.id, 'fascia-piccola'), h('p', { text: tc.intro }), ol,
           tc.fonte ? h('p', { class: 'fonte', text: tc.fonte }) : null,
           pn && pn.nota ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pn.nota) : null)));
     });

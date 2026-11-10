@@ -312,3 +312,10 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .tema-card[data-colore=amber] { border-left-color: var(--accent); }
 /* Le fonti: sempre piccole e in corsivo, ovunque compaiano. */
 .fonte { margin: 10px 0 0; font-size: .76rem; line-height: 1.45; font-style: italic; color: var(--muted); }
+/* Illustrazioni (fascia 2:1): a filo in cima alla scheda; nel tema scuro un po' abbassate, per non abbagliare. */
+.tema-card, .dlg-in { overflow: hidden; }
+.fascia { margin: -16px -16px 14px; aspect-ratio: 2 / 1; background: var(--line); overflow: hidden; }
+.fascia img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.dlg-in > .fascia { margin: -20px -20px 16px; }
+.fascia.fascia-piccola { margin: 0 0 12px; border-radius: 12px; }
+:root:not([data-theme="giorno"]) .fascia img { filter: brightness(.86) saturate(.92); }

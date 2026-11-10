@@ -9,3 +9,6 @@ privato/
 profilo*.json
 *.profilo
 referto*
+
+# Immagini grezze (solo locali): in linea vanno solo le versioni in img/
+arte_grezza/

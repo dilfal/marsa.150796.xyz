@@ -1,5 +1,5 @@
 /* Approdo – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'approdo-v16';
+var CACHE = 'approdo-v17';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
@@ -10,6 +10,8 @@ var TRACCE = [
   'audio/voce/base.mp3', 'audio/voce/presenza.mp3', 'audio/voce/emozioni.mp3', 'audio/voce/mentalizzare.mp3',
   'audio/voce/relazioni.mp3', 'audio/voce/disagio.mp3', 'audio/voce/valore.mp3'
 ];
+/* Illustrazioni: facoltative come le tracce (se una non c’è ancora, l’app si installa lo stesso). */
+var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'relazioni'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */
@@ -18,7 +20,7 @@ function nuova(percorso) { return new Request(percorso, { cache: 'reload' }); }
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     return Promise.all(FILES.map(function (f) { return c.add(nuova(f)); })).then(function () {
-      return Promise.all(TRACCE.map(function (t) { return c.add(nuova(t)).catch(function () { /* niente */ }); }));
+      return Promise.all(TRACCE.concat(IMMAGINI).map(function (t) { return c.add(nuova(t)).catch(function () { /* niente */ }); }));
     });
   }).then(function () { return self.skipWaiting(); }));
 });
