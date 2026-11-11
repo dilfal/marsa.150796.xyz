@@ -1,5 +1,5 @@
-/* Approdo – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'approdo-v22';
+/* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
+var CACHE = 'marsa-v24';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
@@ -28,7 +28,7 @@ self.addEventListener('install', function (e) {
 
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k.indexOf('approdo-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(keys.filter(function (k) { return k.indexOf('marsa-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 

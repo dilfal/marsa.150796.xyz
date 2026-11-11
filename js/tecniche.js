@@ -1,9 +1,9 @@
-/* Approdo – tecniche brevi in più per la finestra «Stasera è dura».
+/* Marsa – tecniche brevi in più per la finestra «Stasera è dura».
    Da fare a letto o sul divano, in due-cinque minuti, senza materiali e senza sforzo fisico.
    Testi originali in italiano, parafrasati dalle fonti cliniche (DBT e altre): nessun passo è copiato.
    `fonte` (autore, anno, opera, argomento) è mostrata in piccolo sotto i passi. */
-window.Approdo = window.Approdo || {};
-window.Approdo.Tecniche = [
+window.Marsa = window.Marsa || {};
+window.Marsa.Tecniche = [
   {
     id: 'stop', titolo: 'STOP: fermarti trenta secondi',
     intro: 'Quando una spinta forte, cioè un impulso ad agire subito, ti chiede di fare qualcosa, trenta secondi di pausa ti ridanno la scelta: tra l’emozione e l’azione si apre uno spazio. Si fa anche a letto, senza alzarti.',

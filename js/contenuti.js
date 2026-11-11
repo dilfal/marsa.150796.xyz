@@ -1,10 +1,10 @@
-/* Approdo – i sette temi della settimana.
+/* Marsa – i sette temi della settimana.
    Testi originali in italiano, parafrasati dalle fonti cliniche (DBT, MBT, attaccamento, modello GET): nessun passo è copiato.
    Ogni tema ha: lettura breve, esercizio guidato (passi; le scene a scelta multipla stanno in js/percorso.js; i vecchi campi restano per leggere le note già salvate), domanda e frase della buonanotte.
    `audio` è il testo da leggere ad alta voce (voce di sintesi); `file` è il percorso dell’mp3 e resta null finché la traccia non esiste.
    `fonte` è mostrata in piccolo sotto la lettura, come «Fonti: …»: elenco `Autore (anno), Titolo · argomento; …`. */
-window.Approdo = window.Approdo || {};
-window.Approdo.Temi = [
+window.Marsa = window.Marsa || {};
+window.Marsa.Temi = [
   /* ---------------- domenica (getDay() = 0) ---------------- */
   {
     id: 'base', giorno: 0, nome: 'Base sicura', sotto: 'Chi e che cosa ti sostiene',
@@ -235,4 +235,4 @@ window.Approdo.Temi = [
 ];
 
 /* Giorni della settimana, per i testi. Indice = Date.getDay(). */
-window.Approdo.Giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+window.Marsa.Giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];

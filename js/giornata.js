@@ -1,4 +1,4 @@
-/* Approdo – i momenti della giornata: mattina («L’avvio»), pomeriggio («La pausa») e notte («Se sei sveglia»).
+/* Marsa – i momenti della giornata: mattina («L’avvio»), pomeriggio («La pausa») e notte («Se sei sveglia»).
    La sera resta la serata a tema (contenuti.js, percorso.js, arrivo.js).
    Basi nelle fonti: i fattori di vulnerabilità della diary-card dei gruppi GET (malattia fisica, alimentazione, sonno);
    i «Tre minuti di respiro» (Williams, Teasdale, Segal, Kabat-Zinn);
@@ -9,8 +9,8 @@
    Le risposte si salvano per POSIZIONE (indice): dopo la pubblicazione non riordinare e non inserire voci in mezzo,
    aggiungi solo in fondo. Le emozioni usano l’elenco (e l’ordine) di arrivo.js: qui c’è solo il feedback di giorno.
    `azione` della notte: solo 'conta' | 'alzati' | 'respiro' | 'sensi' | 'sakina' | 'dura'. */
-window.Approdo = window.Approdo || {};
-window.Approdo.Giornata = {
+window.Marsa = window.Marsa || {};
+window.Marsa.Giornata = {
   momenti: {
     mattina: { nome: 'Mattina', titolo: 'L’avvio della giornata', sotto: 'Come hai dormito, come stai e una sola cosa per oggi: tre minuti per ridurre la vulnerabilità emotiva (un corpo stanco o a digiuno rende le emozioni più forti).', fonte: 'Linehan (2015), DBT Skills Training Manual · Regolazione emotiva, ridurre la vulnerabilità (Handout 14-20); Visintini (a cura di, 2024), Il modello GET per la personalità borderline · diary-card e fattori di vulnerabilità' },
     pomeriggio: { nome: 'Pomeriggio', titolo: 'Una pausa a metà giornata', sotto: 'Tre minuti di respiro e uno sguardo a come stai, per uscire dal «pilota automatico» (agire per abitudine, senza accorgertene) prima della sera.', fonte: 'Williams, Teasdale, Segal e Kabat-Zinn (2010), Ritrovare la serenità · Tre minuti di respiro; Linehan (2015), DBT Skills Training Manual · Regolazione emotiva, Handout 20 (PLEASE)' },

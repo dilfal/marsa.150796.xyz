@@ -1,4 +1,4 @@
-/* Approdo – seconda serie di scene («serie B») per le sette sere.
+/* Marsa – seconda serie di scene («serie B») per le sette sere.
    Si alterna alla prima (js/percorso.js): la prima volta che si fa un tema si vede la serie A, la volta dopo la B, e così via.
    Chiusura e riepilogo restano quelli della serie A: i `tag` qui sotto sono gli stessi del `riepilogo` di ogni tema
    (un’opzione senza `tag` non conta nel riepilogo).
@@ -7,12 +7,12 @@
    `get` (facoltativo): rimando a Diario GET (diario-get.150796.xyz), che ha già Scheda Crisi, Pianificazione, check-in e Guida:
    qui non si rifanno. `vai` ammessi: 'crisi' | 'pian' | 'check' | 'guida/<capitolo>'.
    Le risposte si salvano per posizione (indice): dopo la pubblicazione non riordinare e non inserire voci in mezzo. */
-window.Approdo = window.Approdo || {};
+window.Marsa = window.Marsa || {};
 (function () {
   var F = 'Visintini (a cura di, 2024), Il modello GET per la personalità borderline · ';
   var VERO = 'È vero', FALSO = 'È falso', DIPENDE = 'Dipende, non so';
 
-  window.Approdo.PercorsoB = {
+  window.Marsa.PercorsoB = {
     /* ---------------- domenica: Base sicura ---------------- */
     base: [
       {

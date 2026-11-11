@@ -1,9 +1,9 @@
-/* Approdo – il percorso della sera: scene a scelta (singola o multipla) con spiegazione psicoeducativa immediata,
+/* Marsa – il percorso della sera: scene a scelta (singola o multipla) con spiegazione psicoeducativa immediata,
    una domanda di chiusura e un riepilogo di ciò che è emerso (non un punteggio, non una diagnosi).
    Testi originali (parafrasi delle fonti cliniche), nessun passo copiato. Le risposte si salvano per posizione (indice) in ogni elenco di opzioni: dopo la pubblicazione non riordinare e non inserire voci in mezzo, aggiungi solo in fondo.
    `tag` di ogni opzione → voce di `riepilogo` dello stesso tema. `crisi: true` → l’app propone «Stasera è dura». */
-window.Approdo = window.Approdo || {};
-window.Approdo.Percorso = {
+window.Marsa = window.Marsa || {};
+window.Marsa.Percorso = {
   /* ---------------- domenica: Base sicura ---------------- */
   base: {
     scene: [

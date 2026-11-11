@@ -1,11 +1,11 @@
-/* Approdo – l’arrivo della sera: tensione, emozioni, corpo, bisogno, giornata, sonno e il passo di ieri.
+/* Marsa – l’arrivo della sera: tensione, emozioni, corpo, bisogno, giornata, sonno e il passo di ieri.
    Ogni risposta riceve subito una spiegazione psicoeducativa breve e, dove serve, un piccolo passo concreto.
    Testi originali in italiano, parafrasati dalle fonti cliniche (DBT, MBT, attaccamento, mindfulness, modello GET): nessun passo è copiato.
    Ogni voce porta la `fonte` (autore, anno, opera, argomento), mostrata in piccolo sotto la spiegazione.
    Le risposte si salvano per POSIZIONE (indice) in ogni elenco: dopo la pubblicazione non riordinare e non inserire voci in mezzo, aggiungi solo in fondo.
    `azione` dei bisogni: solo 'respiro' | 'sensi' | 'tema' | 'persone' | 'buonanotte'. */
-window.Approdo = window.Approdo || {};
-window.Approdo.Arrivo = {
+window.Marsa = window.Marsa || {};
+window.Marsa.Arrivo = {
   /* feedback per fascia di tensione 0-10: tre fasce che coprono 0..10 senza buchi */
   tensione: [
     {

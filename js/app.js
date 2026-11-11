@@ -1,10 +1,10 @@
-/* Approdo – app. Nessuna dipendenza: tutto resta nel telefono (localStorage). */
+/* Marsa – app. Nessuna dipendenza: tutto resta nel telefono (localStorage). */
 (function () {
   'use strict';
 
-  var A = window.Approdo;
+  var A = window.Marsa;
   var TEMI = A.Temi;
-  var K = { nome: 'approdo.nome', visto: 'approdo.visto', vista: 'approdo.vista', note: 'approdo.note', contatti: 'approdo.contatti', piano: 'approdo.piano', profilo: 'approdo.profilo', giorni: 'approdo.giorni' };
+  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -181,8 +181,8 @@
     }).filter(function (c) { return c && c.nome; });
   }
   function profiloSicuro(raw) {
-    if (!raw || typeof raw !== 'object' || raw.formato !== 'approdo-profilo-1') return null;
-    var P = { formato: 'approdo-profilo-1', creato: txt(raw.creato, 20) };
+    if (!raw || typeof raw !== 'object' || (raw.formato !== 'marsa-profilo-1' && raw.formato !== 'approdo-profilo-1')) return null;   // il vecchio formato resta valido: i profili già scritti si importano ancora
+    var P = { formato: 'marsa-profilo-1', creato: txt(raw.creato, 20) };
     P.aree = (Array.isArray(raw.aree) ? raw.aree : []).slice(0, 14).map(function (a) {
       if (!a || typeof a !== 'object') return null;
       var o = { id: txt(a.id, 30), titolo: txt(a.titolo, 100), scala: txt(a.scala, 90), tecnico: txt(a.tecnico, 800), spiegato: txt(a.spiegato, 800), pratica: txt(a.pratica, 600) };
@@ -284,7 +284,7 @@
      ogni passo e ogni domanda dell’Arrivo è una voce della cronologia, e `popstate` la ridisegna. */
   function segnaPasso(sostituisci) {
     if (!S) return;
-    var st = { approdo: 1, p: S.passo, s: S.sub || 0 };
+    var st = { marsa: 1, p: S.passo, s: S.sub || 0 };
     try { if (sostituisci) history.replaceState(st, ''); else history.pushState(st, ''); } catch (e) { /* niente */ }
   }
 
@@ -701,7 +701,7 @@
   }
   function segnaPassoG(sostituisci) {
     if (!G) return;
-    var st = { approdo: 1, g: G.momento, s: G.sub };
+    var st = { marsa: 1, g: G.momento, s: G.sub };
     try { if (sostituisci) history.replaceState(st, ''); else history.pushState(st, ''); } catch (e) { /* niente */ }
   }
   function passiMomento() {
@@ -1146,7 +1146,7 @@
     var hint = $('#diario-hint');
     var date = datePresenti(note, giorni, false);
     if (!date.length) { hint.textContent = 'Non c’è ancora niente da salvare.'; return; }
-    var righe = ['APPRODO – le mie note', ''];
+    var righe = ['MARSA – le mie note', ''];
     date.forEach(function (d) {
       var rg = giorni[d] ? righeGiorno(giorni[d], d) : [];
       if (rg.length) {
@@ -1164,7 +1164,7 @@
     });
     try {
       var blob = new Blob([righe.join('\n')], { type: 'text/plain;charset=utf-8' });
-      var a = h('a', { href: URL.createObjectURL(blob), download: 'approdo-note.txt' });
+      var a = h('a', { href: URL.createObjectURL(blob), download: 'marsa-note.txt' });
       document.body.appendChild(a); a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
       hint.textContent = 'File salvato. Condividilo solo con chi vuoi tu.';
@@ -1177,7 +1177,7 @@
     var hint = $('#diario-hint');
     var date = datePresenti(note, giorni, true).slice(-30);
     if (!date.length) { hint.textContent = 'Il riepilogo si crea dopo almeno un momento della giornata o una serata finita.'; return; }
-    var righe = ['APPRODO – riepilogo delle mie ultime giornate e serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa). Mattina e pomeriggio seguono la diary card: tensione ed emozioni.', ''];
+    var righe = ['MARSA – riepilogo delle mie ultime giornate e serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa). Mattina e pomeriggio seguono la diary card: tensione ed emozioni.', ''];
     var altaPrima = 0, altaDopo = 0, nPrima = 0, nDopo = 0, conta = { mattina: [0, 0], pomeriggio: [0, 0] };
     date.forEach(function (d) {
       var gd = giorni[d], rg = gd ? righeGiorno(gd, d) : [];
@@ -1209,14 +1209,14 @@
     function scarica() {
       try {
         var blob = new Blob([testo], { type: 'text/plain;charset=utf-8' });
-        var a = h('a', { href: URL.createObjectURL(blob), download: 'approdo-riepilogo.txt' });
+        var a = h('a', { href: URL.createObjectURL(blob), download: 'marsa-riepilogo.txt' });
         document.body.appendChild(a); a.click();
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
         hint.textContent = 'File salvato. Condividilo solo con chi vuoi tu.';
       } catch (e) { hint.textContent = 'Non sono riuscita a creare il file su questo telefono.'; }
     }
     if (navigator.share) {
-      navigator.share({ title: 'Approdo – riepilogo', text: testo }).then(function () { hint.textContent = 'Fatto.'; }).catch(function (e) { if (!e || e.name !== 'AbortError') scarica(); });
+      navigator.share({ title: 'Marsa – riepilogo', text: testo }).then(function () { hint.textContent = 'Fatto.'; }).catch(function (e) { if (!e || e.name !== 'AbortError') scarica(); });
     } else scarica();
   });
 
@@ -1371,7 +1371,7 @@
     });
   }
   /* Non c’è più un tasto fisso: «Stasera è dura» si apre dal benvenuto, dal suggerimento con tensione alta,
-     dalle risposte sensibili e dalla schermata finale. `Approdo.apriDura` serve alle prove automatiche. */
+     dalle risposte sensibili e dalla schermata finale. `Marsa.apriDura` serve alle prove automatiche. */
   A.apriDura = apriDura;
 
   /* ---------- tema chiaro / notte ---------- */
@@ -1397,7 +1397,7 @@
   });
   applicaTemaAuto();
 
-  /* ---------- su Approdo e benvenuto ---------- */
+  /* ---------- su Marsa e benvenuto ---------- */
   $('#btn-info').addEventListener('click', function () {
     $('#info-nome').value = load(K.nome, '');
     var v = A.Version;
@@ -1432,9 +1432,9 @@
   }
   function importaProfilo(testo) {
     var hint = $('#profilo-hint'), raw = null;
-    try { raw = JSON.parse(String(testo)); } catch (e) { hint.textContent = 'Questo testo non è un profilo di Approdo.'; return false; }
+    try { raw = JSON.parse(String(testo)); } catch (e) { hint.textContent = 'Questo testo non è un profilo di Marsa.'; return false; }
     var P = profiloSicuro(raw);
-    if (!P) { hint.textContent = 'Questo non sembra un profilo di Approdo (formato non riconosciuto).'; return false; }
+    if (!P) { hint.textContent = 'Questo non sembra un profilo di Marsa (formato non riconosciuto).'; return false; }
     if (!save(K.profilo, P)) { hint.textContent = 'Non sono riuscita a salvarlo su questo telefono.'; return false; }
     PROF = P;
     if (duraPronta) costruisciDuraProfilo();
@@ -1507,7 +1507,7 @@
     if (vista === 'diario') disegnaDiario();
     if (vista === 'perte') disegnaPerTe();
     var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te' };
-    document.title = titoli[vista] + ' · Approdo';
+    document.title = titoli[vista] + ' · Marsa';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');
     if (t1) { t1.setAttribute('tabindex', '-1'); t1.focus({ preventScroll: true }); }
@@ -1515,7 +1515,7 @@
   window.addEventListener('hashchange', route);
   window.addEventListener('popstate', function (e) {
     var st = e.state, vista = $('#v-stasera');
-    if (!st || !st.approdo || !vista || vista.hidden) return;
+    if (!st || !st.marsa || !vista || vista.hidden) return;
     if (st.g) {   /* un momento della giornata */
       if (!GI || !GI.momenti[st.g] || st.g === 'sera') return;
       MOM = st.g; SCELTA = { m: st.g, auto: momentoDi(new Date()) }; applicaTemaAuto();

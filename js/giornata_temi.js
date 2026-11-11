@@ -1,4 +1,4 @@
-/* Approdo – il filo del giorno: per ogni tema della sera (contenuti.js) un’abilità da portare nella mattina
+/* Marsa – il filo del giorno: per ogni tema della sera (contenuti.js) un’abilità da portare nella mattina
    e una domanda a scelta multipla per il pomeriggio, con un feedback immediato per ogni risposta.
    Basi nelle fonti: DBT (Linehan: una cosa alla volta, mindfulness delle emozioni correnti, validazione,
    pro e contro, dai valori ai passi concreti, cavalcare l’onda, modello biosociale, mente saggia); MBT (Bateman e
@@ -10,8 +10,8 @@
    Testi originali in italiano, parafrasati: nessun passo è copiato.
    Le risposte si salvano per POSIZIONE (indice delle opzioni): dopo la pubblicazione non riordinare
    e non inserire voci in mezzo, aggiungi solo in fondo. `crisi: true` → l’app apre la finestra con le tecniche e il piano personale. */
-window.Approdo = window.Approdo || {};
-window.Approdo.Filo = {
+window.Marsa = window.Marsa || {};
+window.Marsa.Filo = {
   /* ---------------- domenica: Base sicura ---------------- */
   base: {
     mattina: {
