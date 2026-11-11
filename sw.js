@@ -1,5 +1,5 @@
 /* Approdo – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'approdo-v21';
+var CACHE = 'approdo-v22';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
