@@ -319,3 +319,8 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .dlg-in > .fascia { margin: -20px -20px 16px; }
 .fascia.fascia-piccola { margin: 0 0 12px; border-radius: 12px; }
 :root:not([data-theme="giorno"]) .fascia img { filter: brightness(.86) saturate(.92); }
+
+/* Rimandi a Diario GET (sotto una scena e a fine serata) */
+.rimando { display: flex; align-items: center; min-height: 44px; margin-top: 12px; font-size: .9rem; font-weight: 600; text-decoration: none; }
+.ponte-get { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ponte-get .rimando { margin-top: 4px; }

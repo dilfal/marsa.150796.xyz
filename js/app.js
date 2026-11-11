@@ -224,7 +224,7 @@
     Object.keys(n).forEach(function (k) {
       var x = n[k];
       if (!x || typeof x !== 'object' || typeof x.tema !== 'string' || !temaPerId(x.tema)) return;
-      out[k] = { tema: x.tema, prima: numero(x.prima), dopo: numero(x.dopo), campi: stringhe(x.campi), scelte: scelteSicure(x.scelte), nota: typeof x.nota === 'string' ? x.nota.slice(0, 4000) : '', completa: x.completa === true, t: typeof x.t === 'number' ? x.t : 0 };
+      out[k] = { tema: x.tema, prima: numero(x.prima), dopo: numero(x.dopo), campi: stringhe(x.campi), scelte: scelteSicure(x.scelte), nota: typeof x.nota === 'string' ? x.nota.slice(0, 4000) : '', completa: x.completa === true, t: typeof x.t === 'number' ? x.t : 0, serie: x.serie === 'b' ? 'b' : 'a' };
     });
     return out;
   }
@@ -259,6 +259,7 @@
       scelte: salvata && salvata.scelte ? salvata.scelte : {},
       nota: salvata && salvata.nota ? salvata.nota : '',
       completa: !!(salvata && salvata.completa),
+      serie: salvata ? salvata.serie : serieNuova(tema.id, data),
       sub: 0, ieri: domaniPrecedente(data)
     };
     segnaPasso(!aggiungi);
@@ -268,7 +269,7 @@
     if (!S) return;
     scriviNota(S.data, S.tema.id, {
       tema: S.tema.id, prima: S.prima, dopo: S.dopo, campi: S.campi, scelte: S.scelte, nota: S.nota,
-      completa: S.completa, t: Date.now()
+      completa: S.completa, t: Date.now(), serie: S.serie
     });
   }
   function vaiPasso(n) {
@@ -337,7 +338,25 @@
 
   /* ---------- domande a scelta multipla con spiegazione ---------- */
   function percorso(t) { return (A.Percorso && A.Percorso[t.id]) || null; }
-  function tutteLeDomande(P) { return P.scene.concat([P.chiusura]); }
+  /* Le scene hanno due serie che si alternano (js/percorso_b.js): la prima volta di un tema la A, la volta dopo la B.
+     La serie si decide all’inizio della serata e resta scritta nella nota, così riaprendola si ritrovano le stesse domande. */
+  function sceneB(id) { var b = A.PercorsoB && A.PercorsoB[id]; return Array.isArray(b) && b.length ? b : null; }
+  function sceneDi(t, serie) { var P = percorso(t); return !P ? [] : (serie === 'b' && sceneB(t.id)) || P.scene; }
+  function serieNuova(id, data) {
+    if (!sceneB(id)) return 'a';
+    var note = tutteLeNote();
+    var fatte = Object.keys(note).filter(function (k) { return note[k].tema === id && note[k].completa && k.split('|')[0] < data; }).length;
+    return fatte % 2 ? 'b' : 'a';
+  }
+  /* tutte le domande di un tema, di entrambe le serie: per il diario, il riepilogo e le risposte sensibili */
+  function tutteLeScene(P, id) { return P.scene.concat(sceneB(id) || []); }
+  function tutteLeDomande(P, id) { return tutteLeScene(P, id).concat([P.chiusura]); }
+  /* Rimandi a Diario GET, che ha già Scheda Crisi, Pianificazione, check-in e Guida: qui non si rifanno. */
+  var DIARIO_GET = 'https://diario-get.150796.xyz/';
+  function rimandoGet(vai, testo) {
+    if (!/^(crisi|pian|check|guida\/[a-z]+)$/.test(vai || '')) return null;
+    return h('a', { class: 'rimando', href: DIARIO_GET + '#' + vai, target: '_blank', rel: 'noopener', text: testo + ' ↗' });
+  }
 
   /* Una domanda: si tocca una risposta e compare subito la spiegazione. Nessuna risposta è «giusta».
      Le domande 'kit' (multi) si spuntano più volte. Ogni scelta si salva subito nella serata. */
@@ -384,7 +403,8 @@
     return h('div', { class: 'quiz-q' },
       q.tipo && ETICHETTE_DOMANDA[q.tipo] ? h('p', { class: 'sotto', text: ETICHETTE_DOMANDA[q.tipo] + (q.multi ? ' (anche più di una)' : '') }) : null,
       h('p', { class: 'quiz-dom', id: 'qd-' + q.id, text: q.domanda }),
-      gruppo, spieg, annuncio);
+      gruppo, spieg, annuncio,
+      q.get ? rimandoGet(q.get.vai, q.get.testo) : null);
   }
 
   /* Che cosa è emerso stasera: il tag più scelto fra tutte le risposte dà la frase e la piccola cosa per domani. */
@@ -395,7 +415,7 @@
     var conta = {}, ordine = [];
     /* Contano solo le scene «Ti riconosci?», dove si descrive com’è. Le abilità del kit, i miti e la chiusura
        portano il tag del problema che curano: attribuirli alla persona sarebbe sbagliato. */
-    P.scene.filter(function (q) { return q.tipo === 'riconosci'; }).forEach(function (q) {
+    tutteLeScene(P, tema.id).filter(function (q) { return q.tipo === 'riconosci'; }).forEach(function (q) {
       (scelte[q.id] || []).forEach(function (i) {
         var o = q.opzioni[i];
         if (!o || !o.tag || !P.riepilogo[o.tag]) return;
@@ -589,7 +609,7 @@
         card.appendChild(h('p', { class: 'small', text: 'Quello che scrivi resta solo sul tuo telefono. Puoi lasciare vuoto qualsiasi campo.' }));
       }
       radice.appendChild(card);
-      if (P2) P2.scene.forEach(function (q) { radice.appendChild(h('div', { class: 'card quiz' }, cartaDomanda(q))); });
+      if (P2) sceneDi(t, S.serie).forEach(function (q) { radice.appendChild(h('div', { class: 'card quiz' }, cartaDomanda(q))); });
       radice.appendChild(navPassi(1, 3, 'Avanti, la buonanotte'));
       return;
     }
@@ -978,6 +998,15 @@
       h('button', { class: 'btn', type: 'button', text: testoAvanti, onclick: function () { vaiPasso(avanti); } }));
   }
 
+  /* Un solo rimando a Diario GET a fine serata, e solo quando la tensione non è alta:
+     la sera in cui la tensione è scesa, la crisi sventata; prima e dopo il fine settimana, la Pianificazione. */
+  function ponteGet(t, lp, ld) {
+    var r = null;
+    if (lp === 2 && ld !== null && ld < 2) r = ['crisi', 'Se oggi hai attraversato un momento duro senza peggiorarlo, nel modello GET si chiama «crisi sventata»: vale la pena annotarla.', 'Apri la Scheda Crisi del Diario GET'];
+    else if (S.oggi && (t.id === 'relazioni' || t.id === 'disagio')) r = ['pian', 'Il fine settimana è vicino: prepararlo adesso, con calma, rende più leggeri i momenti che temi.', 'Apri la Pianificazione del Diario GET'];
+    else if (S.oggi && t.id === 'base') r = ['pian', 'Com’è andato il fine settimana rispetto a ciò che avevi previsto? Guardarlo aiuta a preparare il prossimo.', 'Apri la Pianificazione del Diario GET'];
+    return r ? h('div', { class: 'ponte-get' }, h('p', { class: 'small', text: r[1] }), rimandoGet(r[0], r[2])) : null;
+  }
   function disegnaFatto() {
     var t = S.tema;
     var entrambi = S.dopo !== null && S.prima !== null;
@@ -985,7 +1014,7 @@
     var diff = entrambi ? lp - ld : 0;   /* > 0: più calma; < 0: la tensione è salita */
     var Pf = percorso(t);
     /* una risposta sensibile (es. un impulso che fa male) conta quanto una tensione alta */
-    var crisiScelta = !!Pf && tutteLeDomande(Pf).some(function (q) {
+    var crisiScelta = !!Pf && tutteLeDomande(Pf, t.id).some(function (q) {
       return (S.scelte[q.id] || []).some(function (i) { return q.opzioni[i] && q.opzioni[i].crisi; });
     });
     var alta = crisiScelta || ld === 2 || (entrambi && diff < 0);
@@ -1006,7 +1035,8 @@
         ? h('div', null,
           h('p', { text: 'Se la tensione è ancora alta, non restare sola con questa sera: qui sotto trovi una strada breve per calmarti.' }),
           h('button', { class: 'btn btn-alert', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }))
-        : h('p', { text: 'Puoi posare il telefono. Buonanotte.' })));
+        : h('p', { text: 'Puoi posare il telefono. Buonanotte.' }),
+      alta ? null : ponteGet(t, lp, ld)));
     radice.appendChild(h('div', { class: 'nav-passi' },
       h('button', { class: 'btn btn-ghost', type: 'button', text: 'Rileggi la serata', onclick: function () { vaiPasso(1); } }),
       h('a', { class: 'btn', href: '#diario', text: 'Il mio diario' })));
@@ -1047,7 +1077,7 @@
       if (v && String(v).trim()) out.push([c.etichetta, String(v).trim()]);
     });
     var P = percorso(t);
-    if (P && n.scelte) tutteLeDomande(P).forEach(function (q) {
+    if (P && n.scelte) tutteLeDomande(P, t.id).forEach(function (q) {
       var sel = (n.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; }).map(function (i) { return q.opzioni[i].testo; });
       if (sel.length) out.push([q.domanda, sel.join(' · ')]);
     });
@@ -1167,7 +1197,7 @@
       if (n.dopo !== null) { nDopo++; if (livello(n.dopo) === 2) altaDopo++; }
       righeArrivo(n).forEach(function (r) { righe.push('  – ' + r[0] + ': ' + r[1]); });
       var P = percorso(t);
-      if (P) tutteLeDomande(P).forEach(function (q) {
+      if (P) tutteLeDomande(P, t.id).forEach(function (q) {
         var sel = (n.scelte[q.id] || []).filter(function (i) { return q.opzioni[i]; }).map(function (i) { return q.opzioni[i].testo; });
         if (sel.length) righe.push('  – ' + (q.domanda.length > 80 ? q.domanda.slice(0, 77) + '…' : q.domanda) + ' → ' + sel.join(' · '));
       });
