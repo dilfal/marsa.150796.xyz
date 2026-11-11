@@ -1,5 +1,5 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v24';
+var CACHE = 'marsa-v25';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
@@ -12,7 +12,7 @@ var TRACCE = [
 ];
 /* Illustrazioni: facoltative come le tracce (se una non c’è ancora, l’app si installa lo stesso). */
 var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore',
-  'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda'].map(function (n) { return 'img/' + n + '.webp'; });
+  'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'linehan_scena'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */

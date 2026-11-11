@@ -324,3 +324,11 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .rimando { display: flex; align-items: center; min-height: 44px; margin-top: 12px; font-size: .9rem; font-weight: 600; text-decoration: none; }
 .ponte-get { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .ponte-get .rimando { margin-top: 4px; }
+
+/* In ricordo di Marsha Linehan: scheda in apertura (js/app.js, ricordo) e riquadro in «Su Marsa». */
+.ricordo, .ricordo-info { text-align: center; }
+.ricordo .chip { margin-top: 12px; }
+.ricordo-info { margin: 1.6rem 0 0; }
+.ricordo-info .nome { margin: 0; font-family: var(--serif); font-size: 1.1rem; }
+.ricordo-info .sotto { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+.ricordo .nome { font-size: 1.25rem; }

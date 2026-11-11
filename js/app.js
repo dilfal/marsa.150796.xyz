@@ -4,7 +4,7 @@
 
   var A = window.Marsa;
   var TEMI = A.Temi;
-  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni' };
+  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -30,13 +30,27 @@
   function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
   /* Illustrazione in fascia 2:1 in cima a una scheda (img/<id>.webp). Decorativa: alt vuoto; se manca, sparisce. */
   var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore', 'mattina',
-    'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda'];   /* si allunga a ogni pubblicazione */
+    'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan'];   /* si allunga a ogni pubblicazione */
   function fascia(id, cls) {
     if (!id || IMMAGINI_PRONTE.indexOf(id) < 0) return null;
     var box = h('div', { class: 'fascia' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
     box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', decoding: 'async',
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
     return box;
+  }
+  /* In ricordo di Marsha Linehan (1943–2026): scheda in apertura fino all’11 dicembre 2026, finché non la si chiude.
+     Dopo resta solo in «Su Marsa» (index.html). */
+  function ricordo() {
+    if (new Date() >= new Date(2026, 11, 12) || load(K.ricordo, 0)) return null;
+    var card = h('div', { class: 'card tema-card ricordo' },
+      fascia('linehan'),
+      h('p', { class: 'nome', text: 'In ricordo di Marsha Linehan' }),
+      h('p', { class: 'sotto', text: '1943–2026' }),
+      h('button', { class: 'chip', type: 'button', text: 'Chiudi', onclick: function () {
+        save(K.ricordo, 1);
+        if (card.parentNode) card.parentNode.removeChild(card);
+      } }));
+    return card;
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -296,6 +310,7 @@
         h('p', { class: 'quando', text: A.Giorni[oggi.getDay()] + ' sera' }),
         h('h1', { text: saluto() }),
         sceltaMomento()),
+      ricordo(),
       h('div', { class: 'card tema-card', 'data-colore': t.colore },
         fascia(t.id),
         h('p', { class: 'sotto', text: S.oggi ? 'Il tema di stasera' : 'Un altro tema, per stasera' }),
@@ -477,7 +492,7 @@
   function disegnaArrivo() {
     var AR = A.Arrivo;
     if (!AR) { /* senza i testi: solo la scala e si continua */
-      intestazione().forEach(function (e) { radice.appendChild(e); });
+      intestazione().forEach(function (e) { if (e) radice.appendChild(e); });
       radice.appendChild(punti(0));
       radice.appendChild(h('div', { class: 'card' }, h('h2', { class: 'passo-titolo', text: 'Arrivo' }),
         h('p', { id: 'q-prima', text: 'Quanto sei tesa o agitata, adesso? Tocca una risposta, oppure salta.' }),
@@ -486,7 +501,7 @@
       return;
     }
     var L = passiArrivo(), i = Math.max(0, Math.min(S.sub || 0, L.length - 1)), id = L[i];
-    if (i === 0) intestazione().forEach(function (e) { radice.appendChild(e); });
+    if (i === 0) intestazione().forEach(function (e) { if (e) radice.appendChild(e); });
     radice.appendChild(punti(0));
     var card = h('div', { class: 'card quiz' }, h('p', { class: 'sotto', text: 'Arrivo · ' + (i + 1) + ' di ' + L.length }));
 
@@ -842,6 +857,7 @@
     var i = Math.max(0, Math.min(G.sub || 0, L.length)), id = L[i] || 'fine';
     if (i === 0 || id === 'fine') radice.appendChild(heroMomento());
     if (id === 'fine') { disegnaFineMomento(); return; }
+    if (i === 0) { var rc = ricordo(); if (rc) radice.appendChild(rc); }
     if (i === 0) radice.appendChild(h('div', { class: 'card tema-card', 'data-colore': G.momento === 'notte' ? 'blue' : G.momento === 'mattina' ? 'amber' : 'teal' },
       fascia(G.momento),
       h('p', { class: 'sotto', text: M.nome }),
