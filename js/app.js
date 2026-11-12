@@ -390,11 +390,12 @@
       clear(spieg);
       scelte.slice().sort().forEach(function (i) {
         var o = q.opzioni[i];
+        var corto = (q.breve && o.breve) || '';   /* risposta in una riga, senza passo né fonte */
         spieg.appendChild(h('div', { class: 'quiz-sp' },
           q.multi ? h('b', { text: o.testo }) : null,
-          h('p', { text: o.spiegazione }),
-          o.passo ? h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), o.passo) : null,
-          (o.fonte || q.fonte) ? h('p', { class: 'fonte', text: o.fonte || q.fonte }) : null,
+          h('p', { text: corto || o.spiegazione }),
+          !corto && o.passo ? h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), o.passo) : null,
+          !corto && (o.fonte || q.fonte) ? h('p', { class: 'fonte', text: o.fonte || q.fonte }) : null,
           (o.perte || (pq && pq[String(i)])) ? h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), o.perte || pq[String(i)]) : null,
           q.extra ? q.extra(o) : null));
         if (o.crisi) spieg.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }));
@@ -409,7 +410,7 @@
         if (scelte.length) ctx.scelte[q.id] = scelte.slice(); else delete ctx.scelte[q.id];
         ctx.salva();
         mostra();
-        annuncio.textContent = p >= 0 ? '' : o.testo + '. ' + o.spiegazione + (o.passo ? ' Un piccolo passo: ' + o.passo : '');
+        annuncio.textContent = p >= 0 ? '' : q.breve && o.breve ? o.testo + '. ' + o.breve : o.testo + '. ' + o.spiegazione + (o.passo ? ' Un piccolo passo: ' + o.passo : '');
       } });
       bottoni.push(b);
       gruppo.appendChild(b);
@@ -466,104 +467,63 @@
   function domandaArrivo(id, domanda, lista, opz) {
     opz = opz || {};
     return cartaDomanda({
-      id: 'ar-' + id, domanda: domanda, multi: !!opz.multi, max: opz.max || 0, extra: opz.extra || null,
-      opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '', perte: perTe(opz.gruppo, o.id) }; })
+      id: 'ar-' + id, domanda: domanda, multi: !!opz.multi, max: opz.max || 0, extra: opz.extra || null, breve: !!opz.breve,
+      opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, breve: o.breve || '', passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '', perte: perTe(opz.gruppo, o.id) }; })
     });
   }
-  /* Ciò che l’app propone nella pagina stessa, in base al bisogno scelto. */
-  function extraBisogno(o) {
-    if (o.azione === 'respiro') { var rb = h('div', { class: 'breath' }); respiro(rb, 60); return rb; }
-    if (o.azione === 'sensi') return h('div', null, h('p', { class: 'small', text: 'Guardati intorno e nomina, piano:' }), cinqueSensi());
-    if (o.azione === 'persone') return h('button', { class: 'btn btn-ghost', type: 'button', text: 'Apri «Le mie persone»', onclick: function () {
-      apriDura();
-      var a = $('#acc-contatti'); if (a) { a.setAttribute('open', ''); a.scrollIntoView({ block: 'center' }); }
-    } });
-    if (o.azione === 'buonanotte') return h('button', { class: 'btn', type: 'button', text: 'Vai alla buonanotte', onclick: function () { vaiPasso(3); } });
-    return null;
-  }
-  function passiArrivo() { return (S.ieri ? ['ieri'] : []).concat(['tensione', 'emozioni', 'bisogno', 'giornata']); }
   /* dopo il cambio di schermata il tasto premuto sparisce: il focus passa al titolo (utile con la tastiera e il lettore di schermo) */
   function focusTitolo() {
     var t1 = radice.querySelector('.passo-titolo, h1');
     if (t1) { t1.setAttribute('tabindex', '-1'); t1.focus({ preventScroll: true }); }
   }
-  function vaiArrivo(n) { salvaSerata(); S.sub = n; disegnaSerata(); window.scrollTo(0, 0); focusTitolo(); segnaPasso(false); }
+  /* Il feedback della tensione. Bassa o media: una riga sola, con la spiegazione intera dietro «Perché?»
+     (le stesse parole a ogni apertura stancano). Alta: tutto in vista, come sempre. */
+  function feedbackTensione(f, pt, alta) {
+    if (alta || !f.breve) return bloccoSpiegazione(f, pt);
+    return h('div', { class: 'quiz-sp' }, h('p', { text: f.breve }),
+      h('details', { class: 'perche' }, h('summary', { text: 'Perché?' }), bloccoSpiegazione(f, pt)));
+  }
 
+  /* L’Arrivo è una schermata sola, con una domanda sola (dalla v1.18): la tensione, che serve a capire se stasera
+     è dura e a confrontare il prima e il dopo. Emozioni, corpo, bisogno, giornata e sonno non si chiedono più
+     (il check-in lo fa già Diario GET); le risposte delle vecchie serate restano leggibili nel diario. */
   function disegnaArrivo() {
     var AR = A.Arrivo;
-    if (!AR) { /* senza i testi: solo la scala e si continua */
-      intestazione().forEach(function (e) { if (e) radice.appendChild(e); });
-      radice.appendChild(punti(0));
-      radice.appendChild(h('div', { class: 'card' }, h('h2', { class: 'passo-titolo', text: 'Arrivo' }),
-        h('p', { id: 'q-prima', text: 'Quanto sei tesa o agitata, adesso? Tocca una risposta, oppure salta.' }),
-        scalaUmore(S.prima, function (v) { S.prima = v; }, 'sc-prima', 'q-prima')));
-      radice.appendChild(h('div', { class: 'nav-passi' }, h('button', { class: 'btn btn-block', type: 'button', text: 'Cominciamo', onclick: function () { vaiPasso(1); } })));
-      return;
-    }
-    var L = passiArrivo(), i = Math.max(0, Math.min(S.sub || 0, L.length - 1)), id = L[i];
-    if (i === 0) intestazione().forEach(function (e) { if (e) radice.appendChild(e); });
+    intestazione().forEach(function (e) { if (e) radice.appendChild(e); });
     radice.appendChild(punti(0));
-    var card = h('div', { class: 'card quiz' }, h('p', { class: 'sotto', text: 'Arrivo · ' + (i + 1) + ' di ' + L.length }));
-
-    if (id === 'ieri') {
-      card.appendChild(h('h2', { class: 'passo-titolo', text: S.ieri.etichetta }));
-      card.appendChild(h('p', { class: 'intro', text: 'Ti avevo proposto una piccola cosa:' }));
-      card.appendChild(h('p', { class: 'quiz-dom', text: S.ieri.domani }));
-      card.appendChild(domandaArrivo('ieri', 'Com’è andata?', AR.ieri, { gruppo: 'ieri' }));
-    }
-    if (id === 'tensione') {
-      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Come stai adesso?' }));
-      card.appendChild(h('p', { id: 'q-prima', text: 'Quanto sei tesa o agitata, in questo momento?' }));
-      var fb = h('div', { class: 'quiz-spieg', role: 'status', 'aria-live': 'polite' });
-      var mostraTensione = function (v) {
-        fermaRespiri();
-        clear(fb);
-        if (v === null) return;
-        var f = AR.tensione.filter(function (d) { return v >= d.da && v <= d.a; })[0];
-        if (!f) return;
-        var blocco = h('div', { class: 'quiz-sp' }, h('b', { text: f.titolo }), h('p', { text: f.frase }));
-        if (f.passo) blocco.appendChild(h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), f.passo));
-        if (f.passi) {
-          var ol = h('ol', { class: 'passi-lista' });
-          f.passi.forEach(function (x) { ol.appendChild(h('li', { text: x })); });
-          blocco.appendChild(ol);
-        }
-        var pt = perTe('tensione', String(AR.tensione.indexOf(f)));
-        if (pt) blocco.appendChild(h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pt));
-        if (f.fonte) blocco.appendChild(h('p', { class: 'fonte', text: f.fonte }));
-        if (f.passi) {
-          var rb = h('div', { class: 'breath' });
-          blocco.appendChild(rb);
-          respiro(rb, 60);
-          blocco.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura() + ': altre tecniche', onclick: function () { apriDura(); } }));
-        }
-        fb.appendChild(blocco);
-      };
-      card.appendChild(scalaUmore(S.prima, function (v) { S.prima = v; salvaSerata(); mostraTensione(v); }, 'sc-prima', 'q-prima'));
-      card.appendChild(fb);
-      mostraTensione(S.prima);
-    }
-    if (id === 'emozioni') {
-      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Che cosa senti?' }));
-      card.appendChild(h('p', { class: 'intro', text: 'Non ci sono emozioni giuste o sbagliate. Scegli fino a tre parole.' }));
-      card.appendChild(domandaArrivo('emo', 'Che emozioni ci sono, adesso?', AR.emozioni, { multi: true, max: 3, gruppo: 'emozioni' }));
-      card.appendChild(domandaArrivo('corpo', 'E dove le senti nel corpo?', AR.corpo, { gruppo: 'corpo' }));
-    }
-    if (id === 'bisogno') {
-      card.appendChild(h('h2', { class: 'passo-titolo', text: 'Di che cosa hai bisogno?' }));
-      card.appendChild(domandaArrivo('bisogno', 'Stasera, per te, che cosa conta di più?', AR.bisogni, { extra: extraBisogno, gruppo: 'bisogni' }));
-    }
-    if (id === 'giornata') {
-      card.appendChild(h('h2', { class: 'passo-titolo', text: 'La giornata e la notte' }));
-      card.appendChild(domandaArrivo('giornata', 'Com’è andata la giornata?', AR.giornata, { gruppo: 'giornata' }));
-      card.appendChild(domandaArrivo('sonno', 'E come hai dormito stanotte?', AR.sonno, { gruppo: 'sonno' }));
-    }
+    var card = h('div', { class: 'card quiz' },
+      h('h2', { class: 'passo-titolo', text: 'Come arrivi stasera?' }),
+      h('p', { id: 'q-prima', text: 'Quanto sei tesa o agitata, in questo momento? Tocca una risposta, oppure salta.' }));
+    /* la piccola cosa proposta nell’ultima serata: una domanda facoltativa, che con la tensione alta si nasconde */
+    var ieri = AR && S.ieri ? h('div', { class: 'card quiz' },
+      h('h2', { text: S.ieri.etichetta }),
+      h('p', { class: 'intro', text: 'Ti avevo proposto una piccola cosa:' }),
+      h('p', { class: 'quiz-dom', text: S.ieri.domani }),
+      domandaArrivo('ieri', 'Com’è andata?', AR.ieri, { gruppo: 'ieri', breve: true })) : null;
+    var fb = h('div', { class: 'quiz-spieg', role: 'status', 'aria-live': 'polite' });
+    var mostraTensione = function (v) {
+      fermaRespiri();
+      clear(fb);
+      var l = livello(v);
+      if (ieri) ieri.hidden = l === 2;
+      if (l === null || !AR || !AR.tensione[l]) return;
+      var blocco = feedbackTensione(AR.tensione[l], perTe('tensione', String(l)), l === 2);
+      if (l === 2) {
+        var rb = h('div', { class: 'breath' });
+        blocco.appendChild(rb);
+        respiro(rb, 60);
+        blocco.appendChild(h('button', { class: 'chip', type: 'button', text: nomeDura() + ': altre tecniche', onclick: function () { apriDura(); } }));
+      }
+      fb.appendChild(blocco);
+    };
+    card.appendChild(scalaUmore(S.prima, function (v) { S.prima = v; salvaSerata(); mostraTensione(v); }, 'sc-prima', 'q-prima'));
+    card.appendChild(fb);
+    mostraTensione(S.prima);
     radice.appendChild(card);
-    var ultimo = i === L.length - 1;
+    if (ieri) radice.appendChild(ieri);
     radice.appendChild(h('div', { class: 'nav-passi' },
-      i > 0 ? h('button', { class: 'btn btn-ghost', type: 'button', text: 'Indietro', onclick: function () { vaiArrivo(i - 1); } })
-        : (!S.oggi ? h('a', { class: 'btn btn-ghost', href: '#sere', text: 'Le sere' }) : null),
-      h('button', { class: 'btn', type: 'button', text: ultimo ? 'Cominciamo' : 'Avanti', onclick: function () { if (ultimo) vaiPasso(1); else vaiArrivo(i + 1); } })));
+      !S.oggi ? h('a', { class: 'btn btn-ghost', href: '#sere', text: 'Le sere' }) : null,
+      h('button', { class: 'btn' + (S.oggi ? ' btn-block' : ''), type: 'button', text: 'Cominciamo', onclick: function () { vaiPasso(1); } })));
   }
   function disegnaSerata() {
     fermaRespiri();
@@ -781,14 +741,6 @@
       opzioni: lista.map(function (o) { return { testo: o.testo, spiegazione: o.spiegazione, passo: o.passo || '', fonte: o.fonte || '', azione: o.azione || '', crisi: !!o.crisi, perte: perTeG(opz.gruppo, o.id) }; })
     }, { scelte: G.scelte, salva: salvaMomento });
   }
-  /* le emozioni sono quelle dell’arrivo (stesso ordine, così il diario le legge uguali), con il feedback di giorno */
-  function emozioniDiGiorno() {
-    var AR = A.Arrivo;
-    return (AR ? AR.emozioni : []).map(function (o) {
-      var g = GI.emozioni[o.id] || {};
-      return { id: o.id, testo: o.testo, spiegazione: g.spiegazione || o.spiegazione, passo: g.passo || o.passo || '', fonte: g.fonte || o.fonte || '' };
-    });
-  }
   /* «Tre minuti di respiro»: tre fasi da un minuto, con il tempo che scorre */
   function treMinuti(box) {
     var T = GI.treMinuti, fase = -1, rem = 0, timer = null;
@@ -879,8 +831,7 @@
         clear(fb);
         var l = livello(v);
         if (l === null) return;
-        var f = GI.tensione[l];
-        var blocco = bloccoSpiegazione(f, perTeG('tensione', String(l)));
+        var blocco = feedbackTensione(GI.tensione[l], perTeG('tensione', String(l)), l === 2);
         if (l === 2) {
           var rb = h('div', { class: 'breath' });
           blocco.appendChild(rb);
@@ -891,9 +842,7 @@
       };
       card.appendChild(scalaUmore(G.prima, function (v) { G.prima = v; salvaMomento(); mostra(v); }, 'sc-g', 'q-g'));
       card.appendChild(fb);
-      mostra(G.prima);
-      card.appendChild(h('p', { class: 'intro', text: 'Non ci sono emozioni giuste o sbagliate. Scegli fino a tre parole.' }));
-      card.appendChild(domandaG('emo', 'Che emozioni ci sono, adesso?', emozioniDiGiorno(), { multi: true, max: 3, gruppo: 'emozioni' }));
+      mostra(G.prima);   /* le emozioni non si chiedono più (v1.18): le vecchie risposte restano nel diario */
     }
     if (id === 'cosa' || (id === 'verifica' && !cosaDiStamattina())) {
       card.appendChild(h('h2', { class: 'passo-titolo', text: id === 'cosa' ? 'Una cosa per oggi' : 'Una cosa per il resto della giornata' }));
@@ -1193,7 +1142,7 @@
     var hint = $('#diario-hint');
     var date = datePresenti(note, giorni, true).slice(-30);
     if (!date.length) { hint.textContent = 'Il riepilogo si crea dopo almeno un momento della giornata o una serata finita.'; return; }
-    var righe = ['MARSA – riepilogo delle mie ultime giornate e serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa). Mattina e pomeriggio seguono la diary card: tensione ed emozioni.', ''];
+    var righe = ['MARSA – riepilogo delle mie ultime giornate e serate', 'Lo condivido io, perché ho scelto di farlo. Le risposte sono scelte fra opzioni date: non sono una valutazione clinica. La tensione ha tre livelli: bassa (abbastanza calma), media (un po’ tesa), alta (molto tesa).', ''];
     var altaPrima = 0, altaDopo = 0, nPrima = 0, nDopo = 0, conta = { mattina: [0, 0], pomeriggio: [0, 0] };
     date.forEach(function (d) {
       var gd = giorni[d], rg = gd ? righeGiorno(gd, d) : [];
@@ -1257,6 +1206,27 @@
       el.appendChild(h('div', { class: 'row-btns' },
         h('button', { class: 'btn btn-ghost', type: 'button', text: PROF.sicurezza.titolo, onclick: function () { apriDura(); } })));
     }
+  }
+
+  /* ---------- LE EMOZIONI: le dodici voci da consultare quando si vuole (prima erano risposte dell’Arrivo) ---------- */
+  function disegnaParole() {
+    var el = $('#parole-lista');
+    clear(el);
+    ((A.Arrivo && A.Arrivo.emozioni) || []).forEach(function (o) {
+      var g = (GI && GI.emozioni && GI.emozioni[o.id]) || null, pt = perTe('emozioni', o.id);
+      var corpo = h('div', { class: 'acc-body' },
+        h('p', { text: o.spiegazione }),
+        o.passo ? h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), o.passo) : null,
+        o.fonte ? h('p', { class: 'fonte', text: o.fonte }) : null);
+      if (g && g.spiegazione) {
+        corpo.appendChild(h('h3', { text: 'Di giorno' }));
+        corpo.appendChild(h('p', { text: g.spiegazione }));
+        if (g.passo) corpo.appendChild(h('p', { class: 'quiz-passo' }, h('b', { text: 'Un piccolo passo: ' }), g.passo));
+        if (g.fonte) corpo.appendChild(h('p', { class: 'fonte', text: g.fonte }));
+      }
+      if (pt) corpo.appendChild(h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pt));
+      el.appendChild(h('details', { class: 'acc' }, h('summary', { text: o.testo }), corpo));
+    });
   }
 
   /* ---------- STASERA È DURA ---------- */
@@ -1502,7 +1472,7 @@
   $('#dlg-benvenuto').addEventListener('cancel', function (e) { e.preventDefault(); });
 
   /* ---------- navigazione ---------- */
-  var VISTE = ['stasera', 'sere', 'diario', 'perte'];
+  var VISTE = ['stasera', 'sere', 'diario', 'perte', 'parole'];
   function route() {
     fermaRespiri();
     var hash = location.hash.replace(/^#/, '');
@@ -1513,7 +1483,7 @@
 
     VISTE.forEach(function (v) { $('#v-' + v).hidden = v !== vista; });
     document.querySelectorAll('.tabs a').forEach(function (a) {
-      if (a.getAttribute('data-tab') === vista) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      if (a.getAttribute('data-tab') === (vista === 'parole' ? 'sere' : vista)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     if (vista === 'stasera') {
       if (tema) SCELTA = { m: 'sera', auto: momentoDi(new Date()) };   /* un tema aperto dalle «Sere» è la serata */
@@ -1522,7 +1492,8 @@
     if (vista === 'sere') disegnaSere();
     if (vista === 'diario') disegnaDiario();
     if (vista === 'perte') disegnaPerTe();
-    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te' };
+    if (vista === 'parole') disegnaParole();
+    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te', parole: 'Le emozioni' };
     document.title = titoli[vista] + ' · Marsa';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');

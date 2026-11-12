@@ -1,20 +1,24 @@
-/* Marsa – l’arrivo della sera: tensione, emozioni, corpo, bisogno, giornata, sonno e il passo di ieri.
-   Ogni risposta riceve subito una spiegazione psicoeducativa breve e, dove serve, un piccolo passo concreto.
+/* Marsa – l’arrivo della sera e le dodici emozioni.
+   Dalla v1.18 l’Arrivo chiede solo la tensione (e, se c’è, com’è andata la piccola cosa di ieri): `breve` è la risposta
+   in una riga; la spiegazione intera della tensione sta dietro «Perché?». Le `emozioni` si leggono nella pagina
+   «Le emozioni» (#parole). `corpo`, `bisogni`, `giornata` e `sonno` non si chiedono più: restano qui solo perché
+   il diario possa leggere le serate già salvate.
    Testi originali in italiano, parafrasati dalle fonti cliniche (DBT, MBT, attaccamento, mindfulness, modello GET): nessun passo è copiato.
    Ogni voce porta la `fonte` (autore, anno, opera, argomento), mostrata in piccolo sotto la spiegazione.
-   Le risposte si salvano per POSIZIONE (indice) in ogni elenco: dopo la pubblicazione non riordinare e non inserire voci in mezzo, aggiungi solo in fondo.
-   `azione` dei bisogni: solo 'respiro' | 'sensi' | 'tema' | 'persone' | 'buonanotte'. */
+   Le risposte si salvano per POSIZIONE (indice) in ogni elenco: dopo la pubblicazione non riordinare e non inserire voci in mezzo, aggiungi solo in fondo. */
 window.Marsa = window.Marsa || {};
 window.Marsa.Arrivo = {
   /* feedback per fascia di tensione 0-10: tre fasce che coprono 0..10 senza buchi */
   tensione: [
     {
       da: 0, a: 3, titolo: 'Una sera abbastanza tranquilla',
+      breve: 'Bene. Anche la calma merita attenzione: portala con te nella lettura.',
       frase: 'Anche la calma merita attenzione, non solo la fatica. Nota che cosa ti fa stare così (un posto, una persona, un ritmo): osservare ciò che senti ora, senza cambiarlo, è mindfulness delle emozioni correnti. È anche una riserva di cose buone, per ritrovare la strada nelle sere più dure.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · Regolazione emotiva: mindfulness delle emozioni correnti e accumulare emozioni positive'
     },
     {
       da: 4, a: 7, titolo: 'Una tensione che si sente',
+      breve: 'Ha senso, dopo una giornata intera. Se vuoi, tre respiri con l’espirazione più lunga, poi cominciamo.',
       frase: 'Il corpo è un po’ in allerta, e ha senso dopo una giornata intera: il sistema di allarme si è attivato e non è ancora sceso. È il momento migliore per prenderti cura di te. Le abilità di tolleranza del disagio (quelle che permettono di stare in un momento difficile senza peggiorarlo) funzionano meglio prima che la tensione arrivi in cima.',
       passo: 'Fai tre respiri con l’espirazione più lunga dell’inspirazione: è respirazione ritmata, e può aiutare il corpo a rallentare.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · Tolleranza del disagio: respirazione ritmata'
@@ -223,21 +227,25 @@ window.Marsa.Arrivo = {
   ieri: [
     {
       id: 'provata', testo: 'Sì, l’ho provata',
+      breve: 'Hai provato, e questo conta più del risultato.',
       spiegazione: 'Hai provato, e questo conta più del risultato. Ogni volta che usi un’abilità, anche piccola, la ricordi un po’ meglio per la volta dopo: è così che si impara a usarla anche in situazioni diverse (generalizzazione). Se ti ha fatto bene, tienila nel tuo kit.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · generalizzazione delle abilità; Regolazione emotiva: costruire padronanza'
     },
     {
       id: 'poco', testo: 'Un po’, non fino in fondo',
+      breve: 'Un po’ è già qualcosa: le abilità si imparano a pezzi.',
       spiegazione: 'Un po’ è già qualcosa: le abilità si imparano a pezzi, come una lingua nuova, con piccoli passi che costruiscono padronanza. Non serve farle fino in fondo perché lascino traccia. Se ti va, stasera puoi riprenderla da dove ti eri fermata.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · Regolazione emotiva: costruire padronanza; generalizzazione delle abilità'
     },
     {
       id: 'no', testo: 'Non ci sono riuscita',
+      breve: 'Va bene così. Non è un fallimento: è un’informazione.',
       spiegazione: 'Va bene così. A volte la sera è troppo piena, o la tensione troppo alta per provare qualcosa di nuovo. Non è un fallimento: è un’informazione su che cosa ti ha ostacolata (la DBT la tratta come un anello mancante da capire, non come una colpa). La prossima volta può bastare una mossa ancora più piccola.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · analisi degli anelli mancanti; Regolazione emotiva: costruire padronanza'
     },
     {
       id: 'dimenticata', testo: 'Me n’ero dimenticata',
+      breve: 'Succede spesso. Non c’è niente da recuperare.',
       spiegazione: 'Succede spesso: all’inizio le abitudini nuove si dimenticano facilmente, soprattutto nelle giornate piene, perché la mente va col pilota automatico. Non c’è niente da recuperare. Se vuoi, legala a una cosa che fai già, come lavarti i denti.',
       fonte: 'Williams, Teasdale, Segal e Kabat-Zinn (2010), Ritrovare la serenità · il pilota automatico e le attività di routine; Linehan (2015), DBT Skills Training Manual · analisi degli anelli mancanti'
     }

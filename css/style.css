@@ -287,6 +287,13 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 /* Arrivo: piccolo passo, fonte, rimandi alle altre app */
 .quiz-passo { margin: 10px 0 0 !important; }
 .quiz-sp .breath { margin-top: 12px; }
+/* «Perché?»: la spiegazione intera, chiusa finché non la si chiede */
+.card[hidden] { display: none; }
+.perche { margin-top: 4px; }
+.perche summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; min-height: 44px; font-size: .9rem; font-weight: 600; color: var(--muted); }
+.perche summary::-webkit-details-marker { display: none; }
+.perche summary::after { content: "＋"; margin-left: 8px; }
+.perche[open] summary::after { content: "－"; }
 .quiz-sp .btn { margin-top: 12px; }
 .quiz-q + .quiz-q { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
 .card.quiz .intro { margin: 0 0 14px; }

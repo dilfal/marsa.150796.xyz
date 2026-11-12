@@ -7,7 +7,8 @@
    Non è ripresa la parte TIP con acqua gelida, apnea o sforzo intenso.
    Testi originali in italiano, parafrasati: nessun passo è copiato.
    Le risposte si salvano per POSIZIONE (indice): dopo la pubblicazione non riordinare e non inserire voci in mezzo,
-   aggiungi solo in fondo. Le emozioni usano l’elenco (e l’ordine) di arrivo.js: qui c’è solo il feedback di giorno.
+   aggiungi solo in fondo. Dalla v1.18 mattina e pomeriggio non chiedono più le emozioni: i testi di `emozioni`
+   (per id, come in arrivo.js) si leggono nella pagina «Le emozioni», sotto «Di giorno».
    `azione` della notte: solo 'conta' | 'alzati' | 'respiro' | 'sensi' | 'sakina' | 'dura'. */
 window.Marsa = window.Marsa || {};
 window.Marsa.Giornata = {
@@ -22,11 +23,13 @@ window.Marsa.Giornata = {
   tensione: [
     {
       titolo: 'Abbastanza calma, adesso',
+      breve: 'Bene: è il momento giusto per scegliere che cosa fare della giornata.',
       frase: 'Bene: con l’attivazione bassa (l’energia con cui corpo e mente rispondono a ciò che accade) la mente ragiona e sceglie con più libertà. È il momento giusto per decidere che cosa fare, prima che sia la giornata a decidere per te.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · Regolazione emotiva, Handout 14 (ridurre la vulnerabilità) e Handout 23 (gestire le emozioni estreme)'
     },
     {
       titolo: 'Un po’ tesa',
+      breve: 'Ha senso. Tre respiri con l’espirazione più lunga, poi una cosa alla volta.',
       frase: 'Il corpo è già un po’ in allerta (cuore, respiro e muscoli si preparano ad agire), e ha senso. È il momento più utile per intervenire: le abilità funzionano meglio quando la tensione è ancora a metà salita, prima del punto in cui smettono di funzionare.',
       passo: 'Tre respiri con l’espirazione più lunga dell’inspirazione (respirazione ritmata, che aiuta il corpo a rallentare), poi una cosa alla volta.',
       fonte: 'Linehan (2015), DBT Skills Training Manual · Tolleranza del disagio, Handout 6 (TIP: respirazione ritmata) e Regolazione emotiva, Handout 23'
