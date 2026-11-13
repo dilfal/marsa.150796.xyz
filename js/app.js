@@ -546,6 +546,7 @@
         h('p', { class: 'sotto', text: 'Lettura · ' + t.nome }),
         h('h2', { class: 'passo-titolo', text: t.sotto }),
         testo,
+        t.approfondisci && t.approfondisci.vai === 'accettare' && t.approfondisci.testo ? h('div', { class: 'row-btns' }, h('a', { class: 'btn btn-ghost', href: '#accettare', text: t.approfondisci.testo })) : null,
         t.fonte ? h('p', { class: 'fonte', text: 'Fonti: ' + t.fonte }) : null,
         t.avviso ? h('div', { class: 'avviso', text: t.avviso }) : null));
       radice.appendChild(navPassi(0, 2, 'Avanti, l’esercizio'));
@@ -1229,6 +1230,29 @@
     });
   }
 
+  /* ---------- L’ACCETTAZIONE RADICALE: un esempio piccolo in vista e sette voci da aprire (da consultare, senza rispondere) ---------- */
+  function disegnaAccettare(daSerata) {
+    var AC = A.Accettare;
+    if (!AC) return;
+    $('#accettare-lede').textContent = AC.lede;
+    /* chi arriva da una serata in corso torna a quella stessa serata, allo stesso passo: con #tema=… sempre, anche se è la serata di oggi
+       (#stasera passa da momentoVoluto() e, se nel frattempo cambia il momento della giornata, riporterebbe al momento) */
+    var torna = $('#accettare-torna'), allaSerata = !!(daSerata && S);
+    torna.setAttribute('href', allaSerata ? '#tema=' + S.tema.id : '#stasera');
+    torna.textContent = allaSerata ? 'Torna alla serata' : 'Torna a stasera';
+    var el = $('#accettare-corpo');
+    clear(el);
+    var testo = h('div', { class: 'testo' });
+    AC.esempio.testo.forEach(function (p) { testo.appendChild(h('p', { text: p })); });
+    el.appendChild(h('div', { class: 'card' }, h('h2', { text: AC.esempio.titolo }), testo));
+    AC.voci.forEach(function (v) {
+      var corpo = h('div', { class: 'acc-body' });
+      v.testo.forEach(function (p) { corpo.appendChild(h('p', { text: p })); });
+      el.appendChild(h('details', { class: 'acc', id: 'acc-' + v.id }, h('summary', { text: v.titolo }), corpo));
+    });
+    el.appendChild(h('p', { class: 'fonte', text: 'Fonti: ' + AC.fonte }));
+  }
+
   /* ---------- STASERA È DURA ---------- */
   var duraPronta = false;
   function apriDura() {
@@ -1472,7 +1496,8 @@
   $('#dlg-benvenuto').addEventListener('cancel', function (e) { e.preventDefault(); });
 
   /* ---------- navigazione ---------- */
-  var VISTE = ['stasera', 'sere', 'diario', 'perte', 'parole'];
+  var VISTE = ['stasera', 'sere', 'diario', 'perte', 'parole', 'accettare'];
+  var VISTA_ORA = '';   /* la vista mostrata: serve a «Torna a stasera» dell’accettazione radicale */
   function route() {
     fermaRespiri();
     var hash = location.hash.replace(/^#/, '');
@@ -1480,10 +1505,12 @@
     if (hash.indexOf('tema=') === 0) { tema = temaPerId(hash.slice(5)); vista = 'stasera'; }
     else if (VISTE.indexOf(hash) >= 0) vista = hash;
     if (vista === 'perte' && !PROF) vista = 'stasera';   /* «Per te» esiste solo con un profilo importato */
+    var vistaPrima = VISTA_ORA;
+    VISTA_ORA = vista;
 
     VISTE.forEach(function (v) { $('#v-' + v).hidden = v !== vista; });
     document.querySelectorAll('.tabs a').forEach(function (a) {
-      if (a.getAttribute('data-tab') === (vista === 'parole' ? 'sere' : vista)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      if (a.getAttribute('data-tab') === (vista === 'parole' || vista === 'accettare' ? 'sere' : vista)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     if (vista === 'stasera') {
       if (tema) SCELTA = { m: 'sera', auto: momentoDi(new Date()) };   /* un tema aperto dalle «Sere» è la serata */
@@ -1493,7 +1520,8 @@
     if (vista === 'diario') disegnaDiario();
     if (vista === 'perte') disegnaPerTe();
     if (vista === 'parole') disegnaParole();
-    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te', parole: 'Le emozioni' };
+    if (vista === 'accettare') disegnaAccettare(vistaPrima === 'stasera');
+    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te', parole: 'Le emozioni', accettare: 'L’accettazione radicale' };
     document.title = titoli[vista] + ' · Marsa';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');

@@ -1,8 +1,8 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v27';
+var CACHE = 'marsa-v28';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/app.js',
+  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/app.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 /* Le tracce si salvano a parte: se una manca o la rete cade, l’app si installa lo stesso. */
