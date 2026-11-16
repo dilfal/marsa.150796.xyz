@@ -107,6 +107,23 @@ main { max-width: 640px; margin: 0 auto; padding: 8px max(16px, env(safe-area-in
 .row-inline { display: flex; gap: 8px; align-items: center; }
 .row-inline input { flex: 1; }
 
+/* notifiche (in «Su Marsa») */
+.notif-riga { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; margin: 10px 0; }
+.notif-sw { display: flex; align-items: center; gap: 14px; flex: 1; min-height: 44px; cursor: pointer; }
+.notif-sw input {
+  -webkit-appearance: none; appearance: none; flex: none; margin: 0; cursor: pointer;
+  width: 56px; height: 44px; border-radius: 999px; border: 1.5px solid var(--line);
+  background: radial-gradient(circle at 22px 50%, var(--muted) 0 11px, transparent 12px) var(--bg2);
+}
+.notif-sw input:checked {
+  border-color: var(--accent);
+  background: radial-gradient(circle at 34px 50%, var(--accent-ink) 0 11px, transparent 12px) var(--accent);
+}
+.notif-riga input[type=time] {
+  font: inherit; color: var(--text); background: var(--bg2); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 8px 12px; min-height: 44px; width: 7.5rem; -webkit-appearance: none; appearance: none;
+}
+
 /* campi */
 /* iPhone: tocco rapido senza zoom o ritardo, niente selezione di testo sui tasti, campi senza ombra interna */
 button, a, summary { touch-action: manipulation; }

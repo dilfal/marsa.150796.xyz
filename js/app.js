@@ -4,7 +4,7 @@
 
   var A = window.Marsa;
   var TEMI = A.Temi;
-  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo' };
+  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo', notifiche: 'marsa.notifiche' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -1428,9 +1428,13 @@
   });
   $('#info-cancella-tutto').addEventListener('click', function () {
     if (!confirm('Cancellare tutto: note, nome, persone, piano e preferenze? Non si può annullare.')) return;
-    Object.keys(K).forEach(function (k) { try { localStorage.removeItem(K[k]); } catch (e) { /* niente */ } });
-    location.hash = '#stasera';
-    location.reload();
+    /* con le notifiche attive si toglie prima l’iscrizione dal server */
+    var prima = A.Notifiche && A.Notifiche.attive() ? A.Notifiche.disattiva(true) : Promise.resolve();
+    prima.then(function () {
+      Object.keys(K).forEach(function (k) { try { localStorage.removeItem(K[k]); } catch (e) { /* niente */ } });
+      location.hash = '#stasera';
+      location.reload();
+    });
   });
   /* ---------- importazione del profilo personale (resta solo su questo telefono) ---------- */
   function aggiornaProfiloUI() {

@@ -1,8 +1,8 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v28';
+var CACHE = 'marsa-v29';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/app.js',
+  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/notifiche.js', 'js/app.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 /* Le tracce si salvano a parte: se una manca o la rete cade, l’app si installa lo stesso. */
@@ -98,4 +98,36 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== location.origin) return;
   if (/\.mp3$/.test(url.pathname)) { e.respondWith(audio(e, req)); return; }
   e.respondWith(rete(e, req));
+});
+
+/* Notifiche push: arrivano senza contenuto, il testo lo sceglie l’ora del telefono (stesse fasce di «Oggi»). */
+function testoNotifica(d) {
+  var o = d.getHours();
+  if (o < 5) return 'Marsa è qui, quando vuoi.';
+  if (o < 12) return 'Buongiorno. L’avvio della giornata è pronto, quando vuoi.';
+  if (o < 18) return 'Una pausa a metà giornata: bastano pochi minuti.';
+  return 'La serata di oggi ti aspetta, con calma.';
+}
+
+self.addEventListener('push', function (e) {
+  /* una push deve sempre mostrare una notifica (iOS lo pretende): anche se qualcosa va storto, un testo c’è */
+  var url = new URL('./#stasera', self.registration.scope).href;
+  e.waitUntil(self.registration.showNotification('Marsa', {
+    body: testoNotifica(new Date()),
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: 'marsa-momento',
+    data: { url: url }
+  }));
+});
+
+/* Il tocco porta a «Oggi»: l’app sceglie da sola il momento in corso (mattina, pomeriggio, serata di oggi o notte). */
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || new URL('./#stasera', self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (lista) {
+    var finestra = lista.filter(function (c) { return c.url.indexOf(self.registration.scope) === 0; })[0];
+    if (!finestra) return self.clients.openWindow(url);
+    return finestra.focus().then(function (c) { return (c || finestra).navigate(url); }).catch(function () { return self.clients.openWindow(url); });
+  }));
 });

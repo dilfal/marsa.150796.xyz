@@ -213,7 +213,7 @@
     <input id="ben-nome" type="text" maxlength="30" placeholder="Il tuo nome (se vuoi)" enterkeyhint="done">
     <button class="btn btn-block" type="submit">Iniziamo</button>
     <button class="btn btn-ghost btn-block" type="button" id="ben-dura">È dura: aiutami subito</button>
-    <p class="small">Nessun account, nessun invio di dati: le tue note restano su questo telefono.</p>
+    <p class="small">Nessun account: le tue note restano su questo telefono.</p>
   </form>
 </dialog>
 
@@ -236,7 +236,7 @@
     </div>
     <h3>Il tuo profilo personale</h3>
     <p class="small" id="profilo-stato">Nessun profilo importato.</p>
-    <p class="small">Se chi ti segue ti ha dato un file di profilo, importalo qui: resta solo su questo telefono, senza invio e senza server.</p>
+    <p class="small">Se chi ti segue ti ha dato un file di profilo, importalo qui: resta solo su questo telefono, senza invio.</p>
     <div class="row-btns">
       <label class="btn btn-ghost" for="profilo-file" id="profilo-file-etichetta">Importa da file</label>
       <input id="profilo-file" class="sr" type="file">
@@ -249,8 +249,30 @@
       <button class="btn btn-block" id="profilo-conferma" type="button">Importa</button>
     </div>
     <p class="small" id="profilo-hint" role="status" aria-live="polite"></p>
+    <h3>Notifiche</h3>
+    <p class="small" id="notif-nosupporto" hidden>Per ricevere le notifiche su iPhone, aggiungi prima Marsa alla schermata Home (Condividi, poi «Aggiungi alla schermata Home») e aprila da lì.</p>
+    <div id="notif-box">
+      <p class="small">Un promemoria gentile nei momenti che scegli. Puoi cambiare gli orari o spegnerli quando vuoi.</p>
+      <div class="notif-riga">
+        <label class="notif-sw"><input type="checkbox" role="switch" id="notif-mattina-on"><span>Mattina</span></label>
+        <input type="time" id="notif-mattina-ora" step="300" value="08:00" aria-label="Ora della notifica del mattino">
+      </div>
+      <div class="notif-riga">
+        <label class="notif-sw"><input type="checkbox" role="switch" id="notif-pomeriggio-on"><span>Pomeriggio</span></label>
+        <input type="time" id="notif-pomeriggio-ora" step="300" value="14:30" aria-label="Ora della notifica del pomeriggio">
+      </div>
+      <div class="notif-riga">
+        <label class="notif-sw"><input type="checkbox" role="switch" id="notif-sera-on"><span>Sera</span></label>
+        <input type="time" id="notif-sera-ora" step="300" value="21:00" aria-label="Ora della notifica della sera">
+      </div>
+      <div class="row-btns">
+        <button class="btn" id="notif-tasto" type="button">Attiva le notifiche</button>
+      </div>
+      <p class="small" id="notif-stato" role="status" aria-live="polite"></p>
+      <p class="small">Per le notifiche, un server conserva solo un indirizzo anonimo di questo telefono e gli orari scelti. Niente di ciò che scrivi in Marsa lascia il dispositivo.</p>
+    </div>
     <h3>I tuoi dati</h3>
-    <p class="small">Tutto resta nel telefono (memoria del browser). Nessun server, nessun account. Se cancelli i dati del sito, le tue note spariscono.</p>
+    <p class="small">Le tue note restano nel telefono (memoria del browser), senza account. Se cancelli i dati del sito, spariscono.</p>
     <div class="row-btns">
       <button class="btn btn-ghost" id="info-cancella" type="button">Cancella le mie note</button>
       <button class="btn btn-ghost" id="info-cancella-tutto" type="button">Cancella tutto</button>
@@ -275,6 +297,7 @@
 <script src="js/giornata.js"></script>
 <script src="js/giornata_temi.js"></script>
 <script src="js/accettare.js"></script>
+<script src="js/notifiche.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
