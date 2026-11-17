@@ -87,6 +87,8 @@ h1[tabindex="-1"], h2[tabindex="-1"], h3[tabindex="-1"], main[tabindex="-1"] { o
 .icon-btn:hover { background: var(--card); }
 
 main { max-width: 640px; margin: 0 auto; padding: 8px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); outline: none; }
+/* l’attributo hidden vince sempre, anche su .btn e simili che impostano display */
+[hidden] { display: none !important; }
 .view[hidden] { display: none; }
 .lede { color: var(--muted); font-size: 1.02rem; }
 
@@ -133,6 +135,10 @@ input[type=text], input[type=tel], textarea {
   width: 100%; font: inherit; color: var(--text);
   background: var(--bg2); border: 1.5px solid var(--line); border-radius: 12px;
   padding: 11px 14px; min-height: 48px;
+}
+input[type=number], input[type=date] {
+  -webkit-appearance: none; appearance: none; width: 100%; font: inherit; color: var(--text);
+  background: var(--bg2); border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px; min-height: 48px;
 }
 textarea { min-height: 84px; resize: vertical; }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
@@ -342,7 +348,39 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .fascia img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .dlg-in > .fascia { margin: -20px -20px 16px; }
 .fascia.fascia-piccola { margin: 0 0 12px; border-radius: 12px; }
-:root:not([data-theme="giorno"]) .fascia img { filter: brightness(.86) saturate(.92); }
+:root:not([data-theme="giorno"]) .fascia img, :root:not([data-theme="giorno"]) .emo-img { filter: brightness(.86) saturate(.92); }
+/* Testata delle pagine da consultare e immagine del ciclo: la fascia, ma più bassa e con gli angoli arrotondati. */
+.fascia.fascia-testata { aspect-ratio: 5 / 2; margin: 0 0 14px; }
+.fascia.fascia-ciclo { max-width: 240px; margin: 0 0 10px; }
+/* Le emozioni: figura piccola accanto al nome. */
+.acc-emo summary { gap: 14px; padding: 8px 16px; }
+.emo-img { width: 96px; height: 96px; flex: none; border-radius: 16px; object-fit: cover; background: var(--line); }
+@media (max-width: 360px) { .emo-img { width: 88px; height: 88px; } }
+
+/* Il ciclo (facoltativo): scheda in «Oggi», voci della sera, elenco degli inizi */
+.hero .ciclo { margin: 14px 0 4px; }
+.ciclo-riga { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: var(--card2); border-left: 4px solid var(--teal); line-height: 1.55; font-weight: 600; }
+.ciclo-giorno { margin: 0 0 4px; font-family: var(--serif); font-size: 1.15rem; }
+.ciclo .small { margin: 0 0 8px; }
+.ciclo .row-btns { margin: 12px 0 8px; align-items: center; }
+.link-piccolo { min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .88rem; text-decoration: underline; cursor: pointer; }
+.ciclo-altro[hidden] { display: none; }
+.ciclo-altro input { margin-bottom: 12px; }
+.ciclo-voti { grid-template-columns: 1fr 1fr; gap: 10px; }
+.ciclo-voti .quiz-o { text-align: center; }
+.ciclo-voti .quiz-o::first-letter { text-transform: uppercase; }
+.ciclo-diario .ciclo-voci { margin: 12px 0 0; }
+.ciclo-inizio { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.avviso[hidden] { display: none; }
+
+/* Il tema «Abbiamo litigato»: piano sotto le scene e voce in «Stasera è dura» */
+.piano-litigi { margin-top: 16px; }
+.litigio-piano { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--card2); border-left: 4px solid var(--accent); line-height: 1.55; }
+#litigio-corpo h3 { margin: 16px 0 6px; font-size: 1rem; }
+#litigio-corpo .quiz-opz { margin-bottom: 12px; }
+.litigio-sicurezza { margin: 0 0 16px; }
+.litigio-sicurezza b { display: block; margin-bottom: 4px; color: var(--text); }
+.litigio-sicurezza p { margin: 0 0 8px; }
 
 /* Rimandi a Diario GET (sotto una scena e a fine serata) */
 .rimando { display: flex; align-items: center; min-height: 44px; margin-top: 12px; font-size: .9rem; font-weight: 600; text-decoration: none; }

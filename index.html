@@ -46,11 +46,12 @@
   <!-- ================= LE SETTE SERE ================= -->
   <section class="view" id="v-sere" hidden>
     <h1>Le sette sere</h1>
-    <p class="lede">Ogni giorno della settimana ha il suo tema. Stasera è già scelto per te, ma puoi aprirne un altro quando ne senti il bisogno.</p>
+    <p class="lede">Ogni giorno della settimana ha il suo tema. Stasera è già scelto per te, ma puoi aprirne un altro quando ne senti il bisogno. In fondo c’è un tema fuori dalla settimana, per quando litigate.</p>
     <div id="sere-lista" class="sere-lista"></div>
     <div class="row-btns">
       <a class="btn btn-ghost" href="#parole">Le emozioni, una per una</a>
       <a class="btn btn-ghost" href="#accettare">L’accettazione radicale, spiegata piano</a>
+      <a class="btn btn-ghost" href="#litigi">Quando litighiamo, spiegato piano</a>
     </div>
   </section>
 
@@ -61,6 +62,17 @@
     <div id="accettare-corpo"></div>
     <div class="row-btns">
       <a class="btn btn-ghost" id="accettare-torna" href="#stasera">Torna a stasera</a>
+      <a class="btn btn-ghost" href="#sere">Torna alle sere</a>
+    </div>
+  </section>
+
+  <!-- ================= QUANDO LITIGHIAMO (da consultare, senza rispondere a niente) ================= -->
+  <section class="view" id="v-litigi" hidden>
+    <h1>Quando litighiamo</h1>
+    <p class="lede" id="litigi-lede"></p>
+    <div id="litigi-corpo"></div>
+    <div class="row-btns">
+      <a class="btn btn-ghost" id="litigi-torna" href="#stasera">Torna a stasera</a>
       <a class="btn btn-ghost" href="#sere">Torna alle sere</a>
     </div>
   </section>
@@ -86,6 +98,11 @@
     <h1>Il mio diario</h1>
     <p class="lede">Le serate che hai fatto e le risposte che hai scelto. Restano solo sul tuo telefono; il riepilogo lo condividi solo se vuoi.</p>
     <div id="diario-lista"></div>
+    <div id="ciclo-inizi" hidden>
+      <h2 class="perte-h">Gli inizi del ciclo</h2>
+      <p class="small">Le date che hai segnato. Puoi toglierne una, se l’hai segnata per sbaglio.</p>
+      <div id="ciclo-inizi-lista"></div>
+    </div>
     <div class="row-btns">
       <button class="btn btn-ghost" id="btn-esporta" type="button">Salva le note in un file</button>
       <button class="btn btn-ghost" id="btn-riepilogo" type="button">Riepilogo da condividere</button>
@@ -112,6 +129,7 @@
       </button>
     </div>
     <p class="lede">Va bene così: sei venuta qui. Facciamo una cosa alla volta, adesso. Non devi risolvere niente adesso.</p>
+    <p class="avviso" id="dura-ciclo" hidden></p>
 
     <details class="acc" open>
       <summary>Respira (due minuti)</summary>
@@ -119,6 +137,11 @@
         <p>Dentro per quattro, fuori per sei. Fuori più lungo di dentro: il corpo capisce che è al sicuro.</p>
         <div class="breath" id="breath-dura"></div>
       </div>
+    </details>
+
+    <details class="acc" id="acc-litigio">
+      <summary>Ho litigato, o sto litigando</summary>
+      <div class="acc-body" id="litigio-corpo"></div>
     </details>
 
     <details class="acc">
@@ -271,6 +294,22 @@
       <p class="small" id="notif-stato" role="status" aria-live="polite"></p>
       <p class="small">Per le notifiche, un server conserva solo un indirizzo anonimo di questo telefono e gli orari scelti. Niente di ciò che scrivi in Marsa lascia il dispositivo.</p>
     </div>
+    <div class="fascia fascia-piccola fascia-ciclo" aria-hidden="true"><img src="img/ciclo.webp" alt="" width="1200" height="600" loading="lazy" decoding="async" onerror="var b=this.parentNode;if(b.parentNode)b.parentNode.removeChild(b)"></div>
+    <h3>Il ciclo</h3>
+    <p class="small">I giorni prima del ciclo possono abbassare la soglia, come il dolore o una malattia: le emozioni arrivano più in fretta e più forti. Se lo accendi, Marsa te lo ricorda in quei giorni, così non ti coglie di sorpresa. Le date restano solo su questo telefono e non vengono inviate a nessuno. Il modello GET mette il ciclo tra le malattie fisiche, che rendono più vulnerabili. Le previsioni sono probabilità, non certezze.</p>
+    <p class="fonte">Fonte: O’Brien, Rapkin e altri, «The Premenstrual Syndromes».</p>
+    <div class="notif-riga">
+      <label class="notif-sw"><input type="checkbox" role="switch" id="ciclo-on"><span>Ricordami i giorni prima del ciclo</span></label>
+    </div>
+    <div id="ciclo-box" hidden>
+      <label class="campo" for="ciclo-durata">Quanto dura di solito il tuo ciclo?<small>In giorni, da 20 a 45.</small></label>
+      <div class="row-inline">
+        <input id="ciclo-durata" type="number" inputmode="numeric" min="20" max="45" step="1" value="28">
+        <button class="btn" id="ciclo-durata-salva" type="button">Salva</button>
+      </div>
+      <p class="small">Spegnendolo, le date restano finché non le cancelli dal diario o con «Cancella tutto».</p>
+    </div>
+    <p class="small" id="ciclo-stato" role="status" aria-live="polite"></p>
     <h3>I tuoi dati</h3>
     <p class="small">Le tue note restano nel telefono (memoria del browser), senza account. Se cancelli i dati del sito, spariscono.</p>
     <div class="row-btns">
@@ -297,6 +336,9 @@
 <script src="js/giornata.js"></script>
 <script src="js/giornata_temi.js"></script>
 <script src="js/accettare.js"></script>
+<script src="js/litigi.js"></script>
+<script src="js/coppia.js"></script>
+<script src="js/ciclo.js"></script>
 <script src="js/notifiche.js"></script>
 <script src="js/app.js"></script>
 </body>

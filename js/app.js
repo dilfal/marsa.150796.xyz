@@ -4,7 +4,7 @@
 
   var A = window.Marsa;
   var TEMI = A.Temi;
-  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo', notifiche: 'marsa.notifiche' };
+  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo', notifiche: 'marsa.notifiche', ciclo: 'marsa.ciclo', pianoLitigi: 'marsa.pianoLitigi' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -30,13 +30,24 @@
   function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
   /* Illustrazione in fascia 2:1 in cima a una scheda (img/<id>.webp). Decorativa: alt vuoto; se manca, sparisce. */
   var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore', 'mattina',
-    'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan'];   /* si allunga a ogni pubblicazione */
+    'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'coppia'];   /* si allunga a ogni pubblicazione */
   function fascia(id, cls) {
     if (!id || IMMAGINI_PRONTE.indexOf(id) < 0) return null;
     var box = h('div', { class: 'fascia' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
     box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', decoding: 'async',
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
     return box;
+  }
+  /* Testata di una pagina da consultare (img/<id>.webp, 2:1 ma più bassa): si mette una volta sola in cima alla vista, prima del titolo.
+     Decorativa; se il file manca, sparisce. */
+  var TESTATE = ['litigi', 'accettare', 'parole'];
+  function testata(idVista, id) {
+    var v = $('#v-' + idVista);
+    if (!v || TESTATE.indexOf(id) < 0 || v.querySelector('.fascia-testata')) return;
+    var box = h('div', { class: 'fascia fascia-piccola fascia-testata', 'aria-hidden': 'true' });
+    box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', loading: 'lazy', decoding: 'async',
+      onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
+    v.insertBefore(box, v.firstChild);
   }
   /* In ricordo di Marsha Linehan (1943–2026): scheda in apertura fino all’11 dicembre 2026, finché non la si chiude.
      Dopo resta solo in «Su Marsa» (index.html). */
@@ -67,7 +78,14 @@
   }
   function temaPerId(id) {
     for (var i = 0; i < TEMI.length; i++) if (TEMI[i].id === id) return TEMI[i];
+    /* temi fuori dalla settimana («Abbiamo litigato», js/coppia.js): si aprono su richiesta */
+    var ex = A.TemiExtra || [];
+    for (var j = 0; j < ex.length; j++) if (ex[j].id === id) return ex[j];
     return null;
+  }
+  function giornoMese(chiave) {
+    var p = chiave.split('-');
+    return +p[2] + ' ' + ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][+p[1] - 1];
   }
   function dataLunga(chiave) {
     var p = chiave.split('-');
@@ -309,7 +327,8 @@
       h('div', { class: 'hero' },
         h('p', { class: 'quando', text: A.Giorni[oggi.getDay()] + ' sera' }),
         h('h1', { text: saluto() }),
-        sceltaMomento()),
+        sceltaMomento(),
+        cartaCiclo(false)),
       ricordo(),
       h('div', { class: 'card tema-card', 'data-colore': t.colore },
         fascia(t.id),
@@ -420,8 +439,53 @@
       q.tipo && ETICHETTE_DOMANDA[q.tipo] ? h('p', { class: 'sotto', text: ETICHETTE_DOMANDA[q.tipo] + (q.multi ? ' (anche più di una)' : '') }) : null,
       h('p', { class: 'quiz-dom', id: 'qd-' + q.id, text: q.domanda }),
       gruppo, spieg, annuncio,
+      q.piano ? bloccoPianoLitigi(q) : null,
       q.get ? rimandoGet(q.get.vai, q.get.testo) : null);
   }
+
+  /* ---------- IL PIANO PER I LITIGI (marsa.pianoLitigi) ----------
+     Campi in Marsa.Coppia.piano (js/coppia.js), scritti a mente fredda. Compare sotto le scene coppia-2 e coppia-5 e in «Stasera è dura»;
+     entra solo nel file delle note («Salva le note in un file»), non nel riepilogo né nel profilo; «Cancella tutto» lo toglie. */
+  var PL = (A.Coppia && A.Coppia.piano) || null;
+  function pianoLitigi() {
+    var raw = stringhe(load(K.pianoLitigi, {})), out = {};
+    if (PL) PL.campi.forEach(function (c) { if (typeof raw[c.id] === 'string') out[c.id] = raw[c.id].slice(0, 600); });
+    return out;
+  }
+  function righePianoLitigi() {
+    var p = pianoLitigi();
+    return PL ? PL.campi.filter(function (c) { return p[c.id] && p[c.id].trim(); }).map(function (c) { return [c.etichetta, p[c.id].trim()]; }) : [];
+  }
+  function bloccoPianoLitigi(q) {
+    if (!PL) return null;
+    var tutti = q.piano === true;
+    var campi = PL.campi.filter(function (c) { return tutti || q.piano.indexOf(c.id) >= 0; });
+    var p = pianoLitigi();
+    var pieno = campi.some(function (c) { return p[c.id] && p[c.id].trim(); });
+    var corpo = h('div', { class: 'acc-body' }, h('p', { class: 'small', text: PL.intro }));
+    campi.forEach(function (c) {
+      var id = 'pl-' + q.id + '-' + c.id;
+      var ta = h('textarea', { id: id, rows: '2', maxlength: '600', 'data-pl': c.id, placeholder: 'Per esempio: ' + c.esempio });
+      ta.value = p[c.id] || '';
+      ta.addEventListener('input', function () {
+        var cur = pianoLitigi(); cur[c.id] = ta.value; save(K.pianoLitigi, cur);
+        /* lo stesso campo può comparire in due scene della stessa pagina: si tengono uguali */
+        [].forEach.call(document.querySelectorAll('textarea[data-pl="' + c.id + '"]'), function (x) { if (x !== ta && x.value !== ta.value) x.value = ta.value; });
+      });
+      corpo.appendChild(h('label', { class: 'campo', for: id, text: c.etichetta }));
+      corpo.appendChild(ta);
+    });
+    corpo.appendChild(h('p', { class: 'small', text: 'Si salva da solo, solo su questo telefono. Lo ritrovi in «' + nomeDura() + '», alla voce «Ho litigato, o sto litigando».' }));
+    return h('details', { class: 'acc piano-litigi', open: tutti || pieno }, h('summary', { text: tutti ? PL.titolo : 'Il mio piano per la pausa' }), corpo);
+  }
+  /* Apre il tema «Abbiamo litigato», se serve direttamente su una scena (es. 'coppia-4'). */
+  var SCENA_DA_APRIRE = null;
+  function apriCoppia(scena) {
+    chiudi($('#dlg-dura'));
+    SCENA_DA_APRIRE = scena || null;
+    if (location.hash === '#tema=coppia') route(); else location.hash = '#tema=coppia';
+  }
+  A.apriCoppia = apriCoppia;
 
   /* Che cosa è emerso stasera: il tag più scelto fra tutte le risposte dà la frase e la piccola cosa per domani. */
   function riepilogoSerata() { return riepilogoPer(S.tema, S.scelte); }
@@ -546,7 +610,7 @@
         h('p', { class: 'sotto', text: 'Lettura · ' + t.nome }),
         h('h2', { class: 'passo-titolo', text: t.sotto }),
         testo,
-        t.approfondisci && t.approfondisci.vai === 'accettare' && t.approfondisci.testo ? h('div', { class: 'row-btns' }, h('a', { class: 'btn btn-ghost', href: '#accettare', text: t.approfondisci.testo })) : null,
+        t.approfondisci && (t.approfondisci.vai === 'accettare' || t.approfondisci.vai === 'litigi') && t.approfondisci.testo ? h('div', { class: 'row-btns' }, h('a', { class: 'btn btn-ghost', href: '#' + t.approfondisci.vai, text: t.approfondisci.testo })) : null,
         t.fonte ? h('p', { class: 'fonte', text: 'Fonti: ' + t.fonte }) : null,
         t.avviso ? h('div', { class: 'avviso', text: t.avviso }) : null));
       radice.appendChild(navPassi(0, 2, 'Avanti, l’esercizio'));
@@ -652,6 +716,8 @@
         if (!y || typeof y !== 'object' || Array.isArray(y)) return;
         g[m] = { prima: numero(y.prima), scelte: scelteSicure(y.scelte), fatto: y.fatto === true, t: typeof y.t === 'number' ? y.t : 0 };
       });
+      var vc = A.Ciclo ? A.Ciclo.vociSicure(x.ciclo) : null;   /* le voci della sera (funzione «Il ciclo») */
+      if (vc) g.ciclo = vc;
       if (Object.keys(g).length) out[d] = g;
     });
     return out;
@@ -721,7 +787,8 @@
     return h('div', { class: 'hero' },
       h('p', { class: 'quando', text: A.Giorni[seraDi(new Date()).getDay()] + ' · ' + GI.momenti[G.momento].nome.toLowerCase() }),
       h('h1', { text: saluto() }),
-      sceltaMomento());
+      sceltaMomento(),
+      cartaCiclo(G.momento === 'mattina'));
   }
   function bloccoSpiegazione(f, pt) {
     var b = h('div', { class: 'quiz-sp' }, h('b', { text: f.titolo }), h('p', { text: f.frase }));
@@ -951,6 +1018,9 @@
   function righeGiorno(g, data) {
     var out = [];
     MOMENTI_SALVATI.forEach(function (m) { if (!vuotoMomento(g[m])) righeMomento(m, g[m], data).forEach(function (r) { out.push(r); }); });
+    righeVociCiclo(g).forEach(function (r) { out.push(r); });
+    var n = out.length && data ? cicloGiornoDi(data) : null;
+    if (n) out.unshift(['Ciclo', 'giorno ' + n]);
     return out;
   }
   function umoreGiorno(g) {
@@ -1003,6 +1073,8 @@
           h('button', { class: 'btn btn-alert', type: 'button', text: nomeDura(), onclick: function () { apriDura(); } }))
         : h('p', { text: 'Puoi posare il telefono. Buonanotte.' }),
       alta ? null : ponteGet(t, lp, ld)));
+    var cv = cartaVociCiclo(S.data);
+    if (cv) radice.appendChild(cv);
     radice.appendChild(h('div', { class: 'nav-passi' },
       h('button', { class: 'btn btn-ghost', type: 'button', text: 'Rileggi la serata', onclick: function () { vaiPasso(1); } }),
       h('a', { class: 'btn', href: '#diario', text: 'Il mio diario' })));
@@ -1020,6 +1092,10 @@
         h('span', null, h('span', { class: 'nm', text: t.nome }), h('span', { class: 'st', text: t.sotto })));
       el.appendChild(b);
     });
+    var cp = temaPerId('coppia');   /* fuori dalla settimana: si apre quando serve */
+    if (cp) el.appendChild(h('button', { class: 'sera-item', type: 'button', onclick: function () { location.hash = '#tema=' + cp.id; } },
+      h('span', { class: 'gg', text: 'Se serve' }),
+      h('span', null, h('span', { class: 'nm', text: cp.nome }), h('span', { class: 'st', text: cp.sotto }))));
   }
 
   /* ---------- DIARIO ---------- */
@@ -1060,10 +1136,12 @@
   function disegnaDiario() {
     var el = $('#diario-lista');
     clear(el);
+    disegnaCicloInizi();
     var note = tutteLeNote(), giorni = tuttiIGiorni();
     /* le giornate (mattina, pomeriggio, notte) e le serate, dalla più recente; nello stesso giorno la serata sta sopra */
+    var recenti = cicloGiorniRecenti();   /* oggi e ieri, a funzione accesa: ci si possono aggiungere le voci anche se la serata non è arrivata alla fine */
     var voci = Object.keys(note).map(function (k) { return { o: k.split('|')[0] + '|1|' + k, k: k }; })
-      .concat(Object.keys(giorni).filter(function (d) { return righeGiorno(giorni[d]).length; }).map(function (d) { return { o: d + '|0', d: d }; }))
+      .concat(Object.keys(giorni).concat(recenti).filter(function (d, i, a) { return a.indexOf(d) === i && (recenti.indexOf(d) >= 0 || righeGiorno(giorni[d]).length); }).map(function (d) { return { o: d + '|0', d: d }; }))
       .sort(function (a, b) { return a.o < b.o ? 1 : a.o > b.o ? -1 : 0; });
     if (!voci.length) {
       el.appendChild(h('p', { class: 'vuoto', text: 'Qui compariranno le tue giornate e le tue serate.' }));
@@ -1071,10 +1149,20 @@
     }
     voci.forEach(function (vc) {
       if (vc.d) {
-        var gd = giorni[vc.d], dlg = h('dl', null);
-        righeGiorno(gd, vc.d).forEach(function (r) { dlg.appendChild(h('dt', { text: r[0] })); dlg.appendChild(h('dd', { text: r[1] })); });
+        var gd = giorni[vc.d] || {}, dlg = h('dl', null);
+        var rgd = righeGiorno(gd, vc.d);
+        rgd.forEach(function (r) { dlg.appendChild(h('dt', { text: r[0] })); dlg.appendChild(h('dd', { text: r[1] })); });
+        if (!rgd.length) dlg.appendChild(h('dd', { text: 'Ancora niente di segnato in questa giornata.' }));
+        var zonaVoci = h('div', { class: 'ciclo-diario' });
+        if (recenti.indexOf(vc.d) >= 0) {
+          var bv = h('button', { class: 'btn btn-ghost', type: 'button', text: gd.ciclo ? 'Correggi le voci della sera' : 'Aggiungi le voci della sera', onclick: function () {
+            bv.hidden = true;
+            zonaVoci.appendChild(cartaVociCiclo(vc.d, function () { disegnaDiario(); }));
+          } });
+          zonaVoci.appendChild(bv);
+        }
         var canc = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Elimina questa giornata', onclick: function () {
-          if (!confirm('Eliminare mattina, pomeriggio e notte di questo giorno dal diario? La serata resta.')) return;
+          if (!confirm('Eliminare mattina, pomeriggio, notte e voci della sera di questo giorno dal diario? La serata resta.')) return;
           var tutti = load(K.giorni, {}); if (tutti && typeof tutti === 'object') { delete tutti[vc.d]; save(K.giorni, tutti); }
           if (G && G.data === vc.d) G = null;
           disegnaDiario();
@@ -1083,7 +1171,7 @@
           h('summary', null,
             h('span', null, h('span', { class: 'n-data', text: dataLunga(vc.d) }), h('br'), h('span', { class: 'n-tema', text: 'La giornata' })),
             h('span', { class: 'n-umore', text: umoreGiorno(gd) })),
-          h('div', { class: 'n-corpo' }, dlg, h('div', { class: 'row-btns' }, canc))));
+          h('div', { class: 'n-corpo' }, dlg, zonaVoci, h('div', { class: 'row-btns' }, canc))));
         return;
       }
       var k = vc.k;
@@ -1092,7 +1180,8 @@
       if (!t) return;
       var data = k.split('|')[0];
       var dl = h('dl', null);
-      var righe = righeNota(n);
+      var righe = righeNota(n), gc = cicloGiornoDi(data);
+      if (gc) righe.unshift(['Ciclo', 'giorno ' + gc]);
       righe.forEach(function (r) { dl.appendChild(h('dt', { text: r[0] })); dl.appendChild(h('dd', { text: r[1] })); });
       if (!righe.length) dl.appendChild(h('dd', { text: 'Nessuna risposta salvata in questa serata.' }));
       var umore = n.prima !== null ? (breveLiv(n.prima) + (n.dopo !== null ? ' → ' + breveLiv(n.dopo) : '')) : '';
@@ -1111,13 +1200,18 @@
     var note = tutteLeNote(), giorni = tuttiIGiorni();
     var hint = $('#diario-hint');
     var date = datePresenti(note, giorni, false);
-    if (!date.length) { hint.textContent = 'Non c’è ancora niente da salvare.'; return; }
+    var pianoRighe = righePianoLitigi();
+    if (!date.length && !pianoRighe.length) { hint.textContent = 'Non c’è ancora niente da salvare.'; return; }
     var righe = ['MARSA – le mie note', ''];
     date.forEach(function (d) {
       var rg = giorni[d] ? righeGiorno(giorni[d], d) : [];
       if (rg.length) {
         righe.push(dataLunga(d) + ' · la giornata');
         rg.forEach(function (r) { righe.push('  ' + r[0] + ': ' + r[1]); });
+        righe.push('');
+      } else if (cicloGiornoDi(d)) {
+        righe.push(dataLunga(d) + ' · il ciclo');
+        righe.push('  Ciclo: giorno ' + cicloGiornoDi(d));
         righe.push('');
       }
       Object.keys(note).filter(function (k) { return k.split('|')[0] === d; }).sort().forEach(function (k) {
@@ -1128,6 +1222,11 @@
         righe.push('');
       });
     });
+    if (pianoRighe.length) {
+      righe.push('Il mio piano per i litigi');
+      pianoRighe.forEach(function (r) { righe.push('  ' + r[0] + ': ' + r[1].replace(/\n/g, ' ')); });
+      righe.push('');
+    }
     try {
       var blob = new Blob([righe.join('\n')], { type: 'text/plain;charset=utf-8' });
       var a = h('a', { href: URL.createObjectURL(blob), download: 'marsa-note.txt' });
@@ -1151,6 +1250,10 @@
         righe.push(dataLunga(d) + ' · la giornata');
         rg.forEach(function (r) { righe.push('  – ' + r[0] + ': ' + r[1]); });
         ['mattina', 'pomeriggio'].forEach(function (m) { if (gd[m] && gd[m].prima !== null) { conta[m][1]++; if (livello(gd[m].prima) === 2) conta[m][0]++; } });
+        righe.push('');
+      } else if (cicloGiornoDi(d)) {
+        righe.push(dataLunga(d) + ' · il ciclo');
+        righe.push('  – Ciclo: giorno ' + cicloGiornoDi(d));
         righe.push('');
       }
       Object.keys(note).filter(function (k) { return k.split('|')[0] === d && note[k].completa; }).sort().forEach(function (k) { rigaSerata(k); });
@@ -1212,6 +1315,7 @@
   /* ---------- LE EMOZIONI: le dodici voci da consultare quando si vuole (prima erano risposte dell’Arrivo) ---------- */
   function disegnaParole() {
     var el = $('#parole-lista');
+    testata('parole', 'parole');
     clear(el);
     ((A.Arrivo && A.Arrivo.emozioni) || []).forEach(function (o) {
       var g = (GI && GI.emozioni && GI.emozioni[o.id]) || null, pt = perTe('emozioni', o.id);
@@ -1226,21 +1330,25 @@
         if (g.fonte) corpo.appendChild(h('p', { class: 'fonte', text: g.fonte }));
       }
       if (pt) corpo.appendChild(h('p', { class: 'quiz-perte' }, h('b', { text: 'Per te: ' }), pt));
-      el.appendChild(h('details', { class: 'acc' }, h('summary', { text: o.testo }), corpo));
+      /* un’immagine piccola accanto al nome (decorativa, 96 px, con larghezza e altezza dichiarate); se manca, sparisce */
+      var emo = h('img', { class: 'emo-img', src: 'img/emo-' + o.id + '.webp', alt: '', width: '96', height: '96', loading: 'lazy', decoding: 'async',
+        onerror: function () { if (emo.parentNode) emo.parentNode.removeChild(emo); } });
+      el.appendChild(h('details', { class: 'acc acc-emo' }, h('summary', null, emo, h('span', { text: o.testo })), corpo));
     });
   }
 
   /* ---------- L’ACCETTAZIONE RADICALE: un esempio piccolo in vista e sette voci da aprire (da consultare, senza rispondere) ---------- */
-  function disegnaAccettare(daSerata) {
-    var AC = A.Accettare;
+  /* Una pagina da consultare (esempio in vista e voci da aprire): `pre` è il prefisso degli elementi in index.html. */
+  function disegnaPagina(AC, pre, prefissoId, daSerata) {
     if (!AC) return;
-    $('#accettare-lede').textContent = AC.lede;
+    testata(pre, pre);
+    $('#' + pre + '-lede').textContent = AC.lede;
     /* chi arriva da una serata in corso torna a quella stessa serata, allo stesso passo: con #tema=… sempre, anche se è la serata di oggi
        (#stasera passa da momentoVoluto() e, se nel frattempo cambia il momento della giornata, riporterebbe al momento) */
-    var torna = $('#accettare-torna'), allaSerata = !!(daSerata && S);
+    var torna = $('#' + pre + '-torna'), allaSerata = !!(daSerata && S);
     torna.setAttribute('href', allaSerata ? '#tema=' + S.tema.id : '#stasera');
     torna.textContent = allaSerata ? 'Torna alla serata' : 'Torna a stasera';
-    var el = $('#accettare-corpo');
+    var el = $('#' + pre + '-corpo');
     clear(el);
     var testo = h('div', { class: 'testo' });
     AC.esempio.testo.forEach(function (p) { testo.appendChild(h('p', { text: p })); });
@@ -1248,10 +1356,12 @@
     AC.voci.forEach(function (v) {
       var corpo = h('div', { class: 'acc-body' });
       v.testo.forEach(function (p) { corpo.appendChild(h('p', { text: p })); });
-      el.appendChild(h('details', { class: 'acc', id: 'acc-' + v.id }, h('summary', { text: v.titolo }), corpo));
+      el.appendChild(h('details', { class: 'acc', id: prefissoId + v.id }, h('summary', { text: v.titolo }), corpo));
     });
     el.appendChild(h('p', { class: 'fonte', text: 'Fonti: ' + AC.fonte }));
   }
+  function disegnaAccettare(daSerata) { disegnaPagina(A.Accettare, 'accettare', 'acc-', daSerata); }
+  function disegnaLitigi(daSerata) { disegnaPagina(A.Litigi, 'litigi', 'litigi-', daSerata); }
 
   /* ---------- STASERA È DURA ---------- */
   var duraPronta = false;
@@ -1259,6 +1369,9 @@
     var d = $('#dlg-dura');
     if (!duraPronta) preparaDura();
     $('#dura-titolo').textContent = nomeDura();   /* «Oggi è dura» di giorno, «Stasera è dura» la sera e la notte */
+    disegnaLitigioDura();
+    var cs = cicloStato(), cn = $('#dura-ciclo');
+    if (cn) { cn.textContent = cs && cs.tipo ? (cs.tipo === 'inizio' ? A.Ciclo.TESTI.duraInizio : A.Ciclo.TESTI.duraPrima) : ''; cn.hidden = !cn.textContent; }
     apri(d);
     var rb = $('#breath-dura');
     if (!rb.firstChild) respiro(rb, 120);
@@ -1270,6 +1383,68 @@
       var primo = $('#dlg-dura .acc');
       primo.parentNode.insertBefore(acc, primo);
     }
+  }
+  /* «Ho litigato, o sto litigando»: due strade («sta succedendo adesso» e «è finito») e, sempre in vista, la sicurezza.
+     Il piano per i litigi, se scritto, parla qui; se manca, c’è un testo di base. Si ridisegna a ogni apertura. */
+  function disegnaLitigioDura() {
+    var box = $('#litigio-corpo');
+    if (!box) return;
+    clear(box);
+    var p = pianoLitigi();
+    var campo = function (id) {
+      var c = PL && PL.campi.filter(function (x) { return x.id === id; })[0];
+      return (p[id] && p[id].trim()) || (c && c.standard) || '';
+    };
+    var scritto = !!(PL && ['pausa', 'durata', 'cose'].some(function (id) { return p[id] && p[id].trim(); }));
+    var AVVISO = 'Acqua fredda e movimento deciso: evitali se hai problemi di cuore o di battito, se prendi farmaci che rallentano il cuore, se sei in gravidanza, se hai un disturbo alimentare o allergia al freddo; in quel caso fermati al respiro lento.';
+    var adesso = h('div', { id: 'litigio-adesso', hidden: true },
+      h('p', { text: 'Se senti la spinta a colpire o a rompere qualcosa, non è il momento di parlare: è il momento di uscire dalla stanza.' }),
+      h('h3', { text: 'La mia frase per la pausa' }), h('p', { class: 'litigio-piano', text: campo('pausa') }),
+      h('h3', { text: 'Quanto dura, e quando riprendiamo' }), h('p', { class: 'litigio-piano', text: campo('durata') }),
+      h('h3', { text: 'Che cosa faccio durante la pausa' }), h('p', { class: 'litigio-piano', text: campo('cose') }),
+      h('p', { text: 'Non rifare il litigio nella testa, a preparare le risposte: se parte, riportati al corpo.' }),
+      h('h3', { text: 'Per calmare il corpo (TIP)' }),
+      h('ul', null,
+        h('li', { text: 'Temperatura: acqua fredda sul viso per pochi secondi, senza trattenere il respiro a lungo.' }),
+        h('li', { text: 'Intensità: qualche minuto di movimento deciso, camminare svelti o scuotere braccia e gambe.' }),
+        h('li', { text: 'Respiro lento: dentro per quattro, fuori per sei. Più a lungo fuori che dentro.' })),
+      h('p', { class: 'small', text: AVVISO }),
+      scritto ? null : h('p', { class: 'small', text: 'Questo è un piano di base. Il tuo lo scrivi a mente fredda, con le tue parole.' }),
+      h('button', { class: 'btn btn-ghost', type: 'button', text: scritto ? 'Rivedi il mio piano' : 'Scrivi il mio piano', onclick: function () { apriCoppia('coppia-5'); } }));
+    var finito = h('div', { id: 'litigio-finito', hidden: true },
+      h('h3', { text: 'Stanotte, solo calmarti' }),
+      h('ul', null,
+        h('li', { text: 'Respira piano: fuori più lungo di dentro.' }),
+        h('li', { text: 'Qualcosa di caldo da bere, una coperta, la luce bassa.' }),
+        h('li', { text: 'Se la mente rifà il litigio, riportala al corpo: i piedi sul pavimento, le mani sulle gambe.' })),
+      h('h3', { text: 'Niente messaggi lunghi, stasera' }),
+      h('p', { text: 'Di notte ogni parola pesa di più. Se devi scrivere, un messaggio solo e breve: «Stasera sono scossa. Domani ne parliamo con calma».' }),
+      h('h3', { text: 'Riparare, domani' }),
+      h('p', { text: 'Si ripara a mente più calma, non adesso.' }),
+      p.ripara && p.ripara.trim() ? h('p', { class: 'litigio-piano', text: p.ripara.trim() }) : null,
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Prepara il giorno dopo', onclick: function () { apriCoppia('coppia-4'); } }));
+    var b1 = h('button', { class: 'quiz-o', type: 'button', text: 'Sta succedendo adesso', 'aria-pressed': 'false' });
+    var b2 = h('button', { class: 'quiz-o', type: 'button', text: 'È finito', 'aria-pressed': 'false' });
+    function scegli(quale) {
+      adesso.hidden = quale !== 1; finito.hidden = quale !== 2;
+      b1.setAttribute('aria-pressed', quale === 1 ? 'true' : 'false');
+      b2.setAttribute('aria-pressed', quale === 2 ? 'true' : 'false');
+    }
+    b1.addEventListener('click', function () { scegli(1); });
+    b2.addEventListener('click', function () { scegli(2); });
+    function apriVoce(sel) { var t = $(sel); if (t) { t.setAttribute('open', ''); t.scrollIntoView({ block: 'center' }); } }
+    /* la sicurezza sta in cima, prima dei due tasti: si vede appena la voce si apre */
+    box.appendChild(h('div', { class: 'avviso litigio-sicurezza' },
+      h('b', { text: 'Se senti la spinta a fare male a te o all’altra persona' }),
+      h('p', { text: 'Allontanati subito, in un’altra stanza o fuori, e non restare sola con questa spinta. Poi apri il tuo piano di sicurezza e cerca una persona di cui ti fidi.' }),
+      h('p', { text: 'Se hai paura di come reagisce l’altra persona, mettiti al sicuro e cerca una persona di cui ti fidi: in quel caso la pausa non basta.' }),
+      h('div', { class: 'row-btns' },
+        h('button', { class: 'btn btn-alert', type: 'button', text: 'Apri il mio piano di sicurezza', onclick: function () { apriVoce($('#acc-sicurezza') ? '#acc-sicurezza' : '#acc-piano'); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Le mie persone', onclick: function () { apriVoce('#acc-contatti'); } }))));
+    box.appendChild(h('p', { text: 'Non devi sistemare niente adesso. Dimmi dove sei.' }));
+    box.appendChild(h('div', { class: 'quiz-opz', role: 'group', 'aria-label': 'Dove sei, con il litigio' }, b1, b2));
+    box.appendChild(adesso);
+    box.appendChild(finito);
   }
   function numeroPulito(s) { return String(s).replace(/[^0-9+]/g, ''); }
 
@@ -1407,9 +1582,198 @@
   });
   applicaTemaAuto();
 
+  /* ---------- IL CICLO (v1.21) ----------
+     Funzione facoltativa, spenta di default («Su Marsa»). I dati stanno in «marsa.ciclo» ({attivo, durata, inizi}); le voci della
+     sera in «marsa.giorni», nel campo `ciclo` di ogni giornata ([cinque voti 0-3 o null]). Le previsioni stanno in js/ciclo.js.
+     Il service worker non legge localStorage: la pagina gli lascia, nella Cache Storage («ciclo-avviso»), un record con le
+     sole date dell’avviso, e il worker lo usa per il testo della notifica del mattino. Il server non cambia e non riceve niente. */
+  var CI = A.Ciclo || null;
+  var CACHE_CICLO = 'ciclo-avviso';
+  var cicloDaRidisegnare = false;
+  function cicloLeggi() { return CI ? CI.pulisci(load(K.ciclo, null), oggiCal()) : { attivo: false, durata: 28, inizi: [] }; }
+  function cicloScrivi(c) { save(K.ciclo, { attivo: c.attivo, durata: c.durata, inizi: c.inizi }); cicloAggiornaSW(c); }
+  function oggiCal() { return chiaveData(new Date()); }
+  function cicloAggiornaSW(c) {
+    if (typeof caches === 'undefined') return Promise.resolve();
+    c = c || cicloLeggi();
+    var f = CI && c.attivo ? CI.finestre(c, oggiCal()) : null;
+    if (!f) return caches.delete(CACHE_CICLO).catch(function () { /* niente */ });
+    return caches.open(CACHE_CICLO).then(function (cc) {
+      return cc.put(new URL('ciclo-avviso.json', document.baseURI).href,
+        new Response(JSON.stringify({ v: 1, prima: f.prima, inizio: f.inizio }), { headers: { 'Content-Type': 'application/json' } }));
+    }).catch(function () { /* niente */ });
+  }
+  function cicloPulisciSW() { return typeof caches === 'undefined' ? Promise.resolve() : caches.delete(CACHE_CICLO).catch(function () { /* niente */ }); }
+  function cicloGiornoDi(data) { var c = cicloLeggi(); return CI && c.attivo ? CI.giornoCiclo(c, data) : null; }
+  /* tensione della sera e voci di ogni giorno, per la frase personale */
+  function datiCiclo() {
+    var note = tutteLeNote(), giorni = tuttiIGiorni(), somma = {}, voci = {}, tensione = {};
+    Object.keys(note).forEach(function (k) {
+      var l = livello(note[k].prima), d = k.split('|')[0];
+      if (l === null) return;
+      if (!somma[d]) somma[d] = [];
+      somma[d].push(l);
+    });
+    Object.keys(somma).forEach(function (d) { tensione[d] = somma[d].reduce(function (a, b) { return a + b; }, 0) / somma[d].length; });
+    Object.keys(giorni).forEach(function (d) { if (giorni[d].ciclo) voci[d] = giorni[d].ciclo; });
+    return { tensione: tensione, voci: voci };
+  }
+  /* lo stato di oggi: null con la funzione spenta; altrimenti { c, oggi, tipo ('prima'|'inizio'|null), giorno, testo } */
+  function cicloStato() {
+    var c = cicloLeggi();
+    if (!CI || !c.attivo) return null;
+    var oggi = oggiCal(), av = CI.avviso(c, oggi), testo = '';
+    if (av.tipo === 'inizio') testo = CI.TESTI.inizio(av.giorno);
+    else if (av.tipo === 'prima') testo = CI.frasePersonale(c, datiCiclo()).personale ? CI.TESTI.personale : CI.TESTI.prima;
+    return { c: c, oggi: oggi, tipo: av.tipo, giorno: av.giorno, testo: testo };
+  }
+  /* la scheda di «Oggi»: il tasto «È iniziato il ciclo», il giorno del ciclo e, di mattina, la riga in evidenza */
+  function cartaCiclo(conRiga, messaggio) {
+    var st = cicloStato();
+    if (!st) return null;
+    var c = st.c, box = h('div', { class: 'card ciclo', 'data-ciclo': '1' });
+    function ridisegna(msg) {
+      var nuova = cartaCiclo(conRiga, msg);
+      if (box.parentNode) { if (nuova) box.parentNode.replaceChild(nuova, box); else box.parentNode.removeChild(box); }
+    }
+    function segna(d, msg) {
+      var cc = cicloLeggi(), vic = CI.inizioVicino(cc, d);
+      if (vic) {   /* meno di 15 giorni da un altro inizio: si chiede se è lo stesso ciclo */
+        if (!confirm('C’è già un inizio il ' + giornoMese(vic) + '. Lo sostituisco con questo?')) { ridisegna('Va bene, lascio com’era.'); return; }
+        cc.inizi = CI.sostituisciInizio(cc, vic, d);
+      } else cc.inizi = CI.aggiungiInizio(cc, d);
+      cicloScrivi(cc);
+      ridisegna(msg);
+    }
+    if (conRiga && st.testo) box.appendChild(h('p', { class: 'ciclo-riga', text: st.testo }));
+    if (st.giorno) box.appendChild(h('p', { class: 'ciclo-giorno', text: 'Giorno ' + st.giorno + ' del ciclo' }));
+    var pr = CI.prossimo(c, st.oggi);
+    if (pr) box.appendChild(h('p', { class: 'small ciclo-prossimo', text: 'Il prossimo probabilmente tra ' + pr.da + ' e ' + pr.a + ' giorni' }));
+    if (!c.inizi.length) box.appendChild(h('p', { class: 'small', text: 'Segna il primo giorno del ciclo: da lì Marsa conta i giorni.' }));
+    var msg = h('p', { class: 'small ciclo-msg', role: 'status', 'aria-live': 'polite', text: messaggio || '' });
+    var inData = h('input', { type: 'date', id: 'ciclo-altra-data', max: st.oggi, 'aria-label': 'Primo giorno del ciclo' });
+    var altro = h('div', { class: 'ciclo-altro', hidden: true },
+      h('label', { class: 'campo', for: 'ciclo-altra-data', text: 'Quale giorno?' }), inData,
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Segna questo giorno', onclick: function () {
+        var v = inData.value;
+        if (!v || !CI || CI.gg(v) === null || CI.gg(v) > CI.gg(oggiCal())) { msg.textContent = 'Scegli un giorno fino a oggi.'; return; }
+        segna(v, 'Segnato: ' + dataLunga(v) + '.');
+      } }));
+    var link = h('button', { class: 'link-piccolo', type: 'button', text: 'era un altro giorno', 'aria-expanded': 'false', onclick: function () {
+      altro.hidden = !altro.hidden;
+      link.setAttribute('aria-expanded', altro.hidden ? 'false' : 'true');
+    } });
+    box.appendChild(h('div', { class: 'row-btns' },
+      h('button', { class: 'btn', type: 'button', text: 'È iniziato il ciclo', onclick: function () { segna(oggiCal(), 'Segnato: oggi è il primo giorno.'); } }),
+      link));
+    box.appendChild(altro);
+    box.appendChild(msg);
+    return box;
+  }
+  /* la scheda della sera: cinque voci, quattro tasti ciascuna, facoltative, salvate al tocco */
+  function salvaVoceCiclo(data, i, v) {
+    var tutti = load(K.giorni, {});
+    if (!tutti || typeof tutti !== 'object' || Array.isArray(tutti)) tutti = {};
+    var g = tutti[data] && typeof tutti[data] === 'object' && !Array.isArray(tutti[data]) ? tutti[data] : {};
+    var cur = CI.vociSicure(g.ciclo) || [null, null, null, null, null];
+    cur[i] = v;
+    if (cur.some(function (x) { return x !== null; })) g.ciclo = cur; else delete g.ciclo;
+    if (Object.keys(g).length) tutti[data] = g; else delete tutti[data];
+    save(K.giorni, tutti);
+  }
+  /* oggi e ieri (con la regola della sera: fino alle 5 conta ancora ieri), solo a funzione accesa */
+  function cicloGiorniRecenti() {
+    if (!CI || !cicloLeggi().attivo) return [];
+    var oggi = seraDi(new Date()), ieri = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - 1);
+    return [chiaveData(oggi), chiaveData(ieri)];
+  }
+  function cartaVociCiclo(data, finito) {
+    if (!CI || !cicloLeggi().attivo) return null;
+    var cur = ((tuttiIGiorni()[data] || {}).ciclo || [null, null, null, null, null]).slice();
+    var card = h('div', { class: 'card quiz ciclo-voci' },
+      h('h2', { class: 'passo-titolo', text: 'Come è stata oggi l’onda?' }),
+      h('p', { class: 'intro', text: 'Facoltativo, solo per te: tocca quello che vale per oggi. Serve a vedere, nel tempo, se i giorni prima del ciclo pesano.' }));
+    CI.VOCI.forEach(function (nome, i) {
+      var tasti = [];
+      var gruppo = h('div', { class: 'quiz-opz ciclo-voti', role: 'group', 'aria-labelledby': 'cv-' + data + '-' + i });
+      CI.VALORI.forEach(function (etichetta, v) {
+        var b = h('button', { class: 'quiz-o', type: 'button', text: etichetta, 'aria-pressed': cur[i] === v ? 'true' : 'false', onclick: function () {
+          cur[i] = cur[i] === v ? null : v;   /* un secondo tocco toglie la risposta */
+          salvaVoceCiclo(data, i, cur[i]);
+          tasti.forEach(function (x, j) { x.setAttribute('aria-pressed', cur[i] === j ? 'true' : 'false'); });
+        } });
+        tasti.push(b);
+        gruppo.appendChild(b);
+      });
+      card.appendChild(h('div', { class: 'quiz-q' }, h('p', { class: 'quiz-dom', id: 'cv-' + data + '-' + i, text: nome }), gruppo));
+    });
+    if (finito) card.appendChild(h('div', { class: 'row-btns' }, h('button', { class: 'btn', type: 'button', text: 'Fatto', onclick: finito })));
+    return card;
+  }
+  /* le voci di una giornata come riga leggibile, per il diario e le esportazioni (solo con la funzione accesa) */
+  function righeVociCiclo(g) {
+    if (!CI || !g || !g.ciclo || !cicloLeggi().attivo) return [];
+    var v = g.ciclo.map(function (x, i) { return typeof x === 'number' ? CI.VOCI[i] + ': ' + CI.VALORI[x] + ' (' + x + ')' : null; }).filter(Boolean);
+    return v.length ? [['Ciclo · le voci della sera', v.join(' · ')]] : [];
+  }
+  /* l’elenco degli inizi in «Il mio diario», ciascuno cancellabile (si vede anche a funzione spenta, se ci sono date) */
+  function disegnaCicloInizi() {
+    var box = $('#ciclo-inizi');
+    if (!box) return;
+    var c = cicloLeggi(), el = $('#ciclo-inizi-lista');
+    box.hidden = !c.inizi.length;
+    clear(el);
+    c.inizi.slice().reverse().forEach(function (d) {
+      el.appendChild(h('div', { class: 'ciclo-inizio' },
+        h('span', { text: dataLunga(d) }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Togli', 'aria-label': 'Togli l’inizio del ' + dataLunga(d), onclick: function () {
+          if (!confirm('Togliere questa data dal diario?')) return;
+          var cc = cicloLeggi();
+          cc.inizi = cc.inizi.filter(function (x) { return x !== d; });
+          cicloScrivi(cc);
+          disegnaDiario();
+        } })));
+    });
+  }
+  /* «Su Marsa»: l’interruttore, la durata abituale */
+  function cicloUI() {
+    var on = $('#ciclo-on');
+    if (!on) return;
+    var c = cicloLeggi();
+    on.checked = c.attivo;
+    $('#ciclo-box').hidden = !c.attivo;
+    $('#ciclo-durata').value = c.durata;
+    $('#ciclo-stato').textContent = '';
+  }
+  (function collegaCiclo() {
+    var on = $('#ciclo-on');
+    if (!on) return;
+    function stato(t) { $('#ciclo-stato').textContent = t; }
+    on.addEventListener('change', function () {
+      var c = cicloLeggi();
+      c.attivo = on.checked;
+      cicloScrivi(c);
+      cicloDaRidisegnare = true;
+      $('#ciclo-box').hidden = !c.attivo;
+      if (c.attivo) { $('#ciclo-durata').value = c.durata; stato('Acceso. Da «Oggi» puoi segnare il primo giorno del ciclo.'); $('#ciclo-durata').focus(); }
+      else stato('Spento. Le date restano nel diario finché non le togli.');
+    });
+    $('#ciclo-durata-salva').addEventListener('click', function () {
+      var n = parseInt($('#ciclo-durata').value, 10);
+      if (!(n >= 20 && n <= 45)) { stato('Scrivi un numero da 20 a 45.'); return; }
+      var c = cicloLeggi();
+      c.durata = n;
+      cicloScrivi(c);
+      cicloDaRidisegnare = true;
+      stato('Fatto: di solito ' + n + ' giorni.');
+    });
+    $('#dlg-info').addEventListener('close', function () { if (cicloDaRidisegnare) { cicloDaRidisegnare = false; route(); } });
+  })();
+
   /* ---------- su Marsa e benvenuto ---------- */
   $('#btn-info').addEventListener('click', function () {
     $('#info-nome').value = load(K.nome, '');
+    cicloUI();
     var v = A.Version;
     $('#info-versione').textContent = v ? 'Versione ' + v.v + ' · ' + v.date : '';
     apri($('#dlg-info'));
@@ -1430,7 +1794,7 @@
     if (!confirm('Cancellare tutto: note, nome, persone, piano e preferenze? Non si può annullare.')) return;
     /* con le notifiche attive si toglie prima l’iscrizione dal server */
     var prima = A.Notifiche && A.Notifiche.attive() ? A.Notifiche.disattiva(true) : Promise.resolve();
-    prima.then(function () {
+    prima.then(cicloPulisciSW).then(function () {
       Object.keys(K).forEach(function (k) { try { localStorage.removeItem(K[k]); } catch (e) { /* niente */ } });
       location.hash = '#stasera';
       location.reload();
@@ -1500,7 +1864,7 @@
   $('#dlg-benvenuto').addEventListener('cancel', function (e) { e.preventDefault(); });
 
   /* ---------- navigazione ---------- */
-  var VISTE = ['stasera', 'sere', 'diario', 'perte', 'parole', 'accettare'];
+  var VISTE = ['stasera', 'sere', 'diario', 'perte', 'parole', 'accettare', 'litigi'];
   var VISTA_ORA = '';   /* la vista mostrata: serve a «Torna a stasera» dell’accettazione radicale */
   function route() {
     fermaRespiri();
@@ -1514,7 +1878,7 @@
 
     VISTE.forEach(function (v) { $('#v-' + v).hidden = v !== vista; });
     document.querySelectorAll('.tabs a').forEach(function (a) {
-      if (a.getAttribute('data-tab') === (vista === 'parole' || vista === 'accettare' ? 'sere' : vista)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      if (a.getAttribute('data-tab') === (vista === 'parole' || vista === 'accettare' || vista === 'litigi' ? 'sere' : vista)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     if (vista === 'stasera') {
       if (tema) SCELTA = { m: 'sera', auto: momentoDi(new Date()) };   /* un tema aperto dalle «Sere» è la serata */
@@ -1525,11 +1889,21 @@
     if (vista === 'perte') disegnaPerTe();
     if (vista === 'parole') disegnaParole();
     if (vista === 'accettare') disegnaAccettare(vistaPrima === 'stasera');
-    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te', parole: 'Le emozioni', accettare: 'L’accettazione radicale' };
+    if (vista === 'litigi') disegnaLitigi(vistaPrima === 'stasera');
+    var titoli = { stasera: 'Oggi', sere: 'Le sette sere', diario: 'Il mio diario', perte: 'Per te', parole: 'Le emozioni', accettare: 'L’accettazione radicale', litigi: 'Quando litighiamo' };
     document.title = titoli[vista] + ' · Marsa';
     window.scrollTo(0, 0);
     var t1 = $('#v-' + vista + ' h1');
     if (t1) { t1.setAttribute('tabindex', '-1'); t1.focus({ preventScroll: true }); }
+    /* da «Stasera è dura» si arriva direttamente a una scena del tema «Abbiamo litigato» (le scene stanno tutte nel passo 2) */
+    if (SCENA_DA_APRIRE) {
+      var scena = SCENA_DA_APRIRE; SCENA_DA_APRIRE = null;
+      if (vista === 'stasera' && S && S.tema.id === 'coppia') {
+        S.passo = 2; disegnaSerata(); segnaPasso(false);
+        var qe = document.getElementById('qd-' + scena);
+        if (qe) qe.scrollIntoView({ block: 'start' });
+      }
+    }
   }
   window.addEventListener('hashchange', route);
   window.addEventListener('popstate', function (e) {
@@ -1554,6 +1928,7 @@
 
   route();
   if (!load(K.visto, 0)) apri($('#dlg-benvenuto'));
+  cicloAggiornaSW();
 
   /* ---------- uso senza rete ---------- */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

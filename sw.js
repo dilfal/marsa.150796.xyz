@@ -1,8 +1,8 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v29';
+var CACHE = 'marsa-v32';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/notifiche.js', 'js/app.js',
+  'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/litigi.js', 'js/coppia.js', 'js/ciclo.js', 'js/notifiche.js', 'js/app.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 /* Le tracce si salvano a parte: se una manca o la rete cade, l’app si installa lo stesso. */
@@ -12,7 +12,8 @@ var TRACCE = [
 ];
 /* Illustrazioni: facoltative come le tracce (se una non c’è ancora, l’app si installa lo stesso). */
 var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore',
-  'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'linehan_scena'].map(function (n) { return 'img/' + n + '.webp'; });
+  'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'linehan_scena',
+  'coppia', 'litigi', 'accettare', 'parole', 'ciclo', 'emo-tristezza', 'emo-ansia', 'emo-rabbia', 'emo-vergogna', 'emo-colpa', 'emo-solitudine', 'emo-vuoto', 'emo-delusione', 'emo-gelosia', 'emo-stanca', 'emo-sollievo', 'emo-gratitudine'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */
@@ -100,9 +101,29 @@ self.addEventListener('fetch', function (e) {
   e.respondWith(rete(e, req));
 });
 
+/* Il ciclo (facoltativo): il service worker non legge localStorage. La pagina lascia nella Cache Storage («ciclo-avviso»,
+   un nome che l’aggiornamento della cache non tocca) un piccolo record con le sole date dell’avviso: { v, prima: [da, a], inizio: [da, a] }.
+   Alla notifica del mattino, se oggi è dentro, il testo cambia. Il server non riceve niente. */
+var CACHE_CICLO = 'ciclo-avviso';
+function dataDi(d) {
+  var m = d.getMonth() + 1, g = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (g < 10 ? '0' : '') + g;
+}
+function dentro(f, g) { return Array.isArray(f) && typeof f[0] === 'string' && typeof f[1] === 'string' && f[0] <= g && g <= f[1]; }
+function leggiAvviso() {
+  /* match con cacheName: non crea la cache se non c’è */
+  return caches.match(new URL('ciclo-avviso.json', self.registration.scope).href, { cacheName: CACHE_CICLO })
+    .then(function (r) { return r ? r.json() : null; }).catch(function () { return null; });
+}
+
 /* Notifiche push: arrivano senza contenuto, il testo lo sceglie l’ora del telefono (stesse fasce di «Oggi»). */
-function testoNotifica(d) {
+function testoNotifica(d, avviso) {
   var o = d.getHours();
+  if (avviso && o >= 5 && o < 12) {
+    var g = dataDi(d);
+    if (dentro(avviso.inizio, g)) return 'Primi giorni del ciclo: oggi trattati con gentilezza.';
+    if (dentro(avviso.prima, g)) return 'Sono probabilmente i giorni prima del ciclo: oggi l’onda può alzarsi prima.';
+  }
   if (o < 5) return 'Marsa è qui, quando vuoi.';
   if (o < 12) return 'Buongiorno. L’avvio della giornata è pronto, quando vuoi.';
   if (o < 18) return 'Una pausa a metà giornata: bastano pochi minuti.';
@@ -112,12 +133,14 @@ function testoNotifica(d) {
 self.addEventListener('push', function (e) {
   /* una push deve sempre mostrare una notifica (iOS lo pretende): anche se qualcosa va storto, un testo c’è */
   var url = new URL('./#stasera', self.registration.scope).href;
-  e.waitUntil(self.registration.showNotification('Marsa', {
-    body: testoNotifica(new Date()),
-    icon: 'icons/icon-192.png',
-    badge: 'icons/icon-192.png',
-    tag: 'marsa-momento',
-    data: { url: url }
+  e.waitUntil(leggiAvviso().then(function (avviso) {
+    return self.registration.showNotification('Marsa', {
+      body: testoNotifica(new Date(), avviso),
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      tag: 'marsa-momento',
+      data: { url: url }
+    });
   }));
 });
 
