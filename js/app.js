@@ -1339,7 +1339,13 @@
     clear(el);
     var testo = h('div', { class: 'testo' });
     AC.esempio.testo.forEach(function (p) { testo.appendChild(h('p', { text: p })); });
+    if (AC.inBreve) el.appendChild(h('p', { class: 'in-breve', text: AC.inBreve }));
     el.appendChild(h('div', { class: 'card' }, h('h2', { text: AC.esempio.titolo }), testo));
+    if (AC.prova) {
+      var lista = h('ol', { class: 'passi-lista' });
+      AC.prova.passi.forEach(function (p) { lista.appendChild(h('li', { text: p })); });
+      el.appendChild(h('div', { class: 'card prova-card' }, h('h2', { text: AC.prova.titolo }), lista));
+    }
     AC.voci.forEach(function (v) {
       var corpo = h('div', { class: 'acc-body' });
       v.testo.forEach(function (p) { corpo.appendChild(h('p', { text: p })); });

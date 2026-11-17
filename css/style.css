@@ -173,6 +173,9 @@ label.campo small { display: block; font-weight: 400; color: var(--muted); }
 .nav-passi .btn { flex: 1; }
 .passi-lista { padding-left: 1.2em; margin: 0 0 12px; }
 .passi-lista li { margin-bottom: 8px; }
+.in-breve { background: var(--card2); border-left: 3px solid var(--accent); border-radius: 12px; padding: 12px 14px; margin: 0 0 20px; font-size: 1.02rem; line-height: 1.55; }
+.prova-card { border-color: var(--accent); }
+.prova-card .passi-lista { margin-bottom: 0; }
 .intro { color: var(--muted); }
 
 /* tensione: tre livelli (stessa forma delle altre risposte) */

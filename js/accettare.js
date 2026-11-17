@@ -4,6 +4,7 @@
 window.Marsa = window.Marsa || {};
 window.Marsa.Accettare = {
   lede: 'È una delle abilità più difficili da capire, e non solo per te: lo scrive anche Marsha Linehan nel suo manuale. Qui è spiegata piano, partendo da una cosa piccola. Da leggere quando vuoi, senza dover rispondere a niente.',
+  inBreve: 'In una frase: accettare è smettere di litigare con un fatto che c’è già, così ti restano le forze per decidere che cosa fare.',
   esempio: {
     titolo: 'Cominciamo da una cosa piccola',
     testo: [
@@ -11,6 +12,16 @@ window.Marsa.Accettare = {
       'Puoi passare un’ora a dirti «non doveva piovere proprio oggi». La pioggia resta. In più adesso ci sono la rabbia, le spalle tese e un’ora persa.',
       'Oppure puoi dirti «piove». La pioggia resta lo stesso, e può dispiacerti. Ma hai smesso di litigare con lei, e puoi decidere: prendo l’ombrello, esco più tardi, faccio un’altra cosa.',
       'Quel «piove», detto senza litigare, è accettare. Non è «mi piace che piova». Non è «allora non uscirò mai più».'
+    ]
+  },
+  prova: {
+    titolo: 'Prova adesso, in due minuti',
+    passi: [
+      'Pensa a una cosa piccola di oggi che ti ha dato fastidio: un ritardo, una risposta storta, un programma saltato.',
+      'Dilla come un fatto, in una frase sola, senza «doveva» e senza «sempre»: «Il treno era in ritardo».',
+      'Appoggia le mani sulle cosce, con i palmi in su. Rilassa la mascella e alza appena gli angoli della bocca.',
+      'Ripeti la frase piano, due o tre volte, con tre respiri lenti.',
+      'Nota che cosa cambia nel corpo, anche poco, e poi chiediti: «E adesso che cosa faccio?». Se non cambia niente va bene lo stesso: è un allenamento.'
     ]
   },
   voci: [
@@ -31,19 +42,19 @@ window.Marsa.Accettare = {
       ]
     },
     {
-      id: 'fatti', titolo: 'Che cosa si accetta, e che cosa no',
-      testo: [
-        'Si accettano i fatti: ciò che è già successo e ciò che c’è adesso. «Ho perso l’autobus». «Mi ha risposto alzando la voce». «Stasera sono triste».',
-        'Non si accettano i giudizi e le previsioni, perché non sono fatti. «Sono un disastro» è un giudizio. «Andrà sempre così» è una paura sul futuro. Di questi pensieri puoi accettare una cosa sola: che in questo momento li stai pensando.',
-        'E ogni cosa ha le sue cause, anche quando non le conosci. Dirti «ha le sue cause» non la giustifica: ti aiuta a smettere di ripeterti «non doveva succedere».'
-      ]
-    },
-    {
       id: 'serve', titolo: 'A che cosa serve',
       testo: [
         'Rifiutare un fatto non lo cambia. Il dolore c’è comunque; la lotta contro la realtà ci aggiunge sopra altra sofferenza. Dolore più lotta fa sofferenza: accettare toglie la lotta, non il dolore.',
         'E serve per cambiare. Sembra il contrario, ma per cambiare una cosa bisogna prima vederla com’è. Finché ti ripeti che non dovrebbe essere così, non riesci a guardare che cosa puoi fare.',
         'Accettare non vuol dire smettere di cercare soluzioni: ciò che si può cambiare, prima lo riconosci e poi lo affronti. Ciò che non si può cambiare, come il passato o questo momento così com’è, si può solo accettare: è lì che serve di più.'
+      ]
+    },
+    {
+      id: 'fatti', titolo: 'Che cosa si accetta, e che cosa no',
+      testo: [
+        'Si accettano i fatti: ciò che è già successo e ciò che c’è adesso. «Ho perso l’autobus». «Mi ha risposto alzando la voce». «Stasera sono triste».',
+        'Non si accettano i giudizi e le previsioni, perché non sono fatti. «Sono un disastro» è un giudizio. «Andrà sempre così» è una paura sul futuro. Di questi pensieri puoi accettare una cosa sola: che in questo momento li stai pensando.',
+        'Aiuta anche ricordarti che ogni cosa ha le sue cause, anche quando non le vedi. Questo non la giustifica: ti aiuta a smettere di ripeterti «non doveva succedere».'
       ]
     },
     {
