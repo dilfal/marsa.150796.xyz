@@ -362,6 +362,9 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .ciclo-riga { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: var(--card2); border-left: 4px solid var(--teal); line-height: 1.55; font-weight: 600; }
 .ciclo-giorno { margin: 0 0 4px; font-family: var(--serif); font-size: 1.15rem; }
 .ciclo .small { margin: 0 0 8px; }
+.ciclo-piede { margin: 2rem 0 1rem; text-align: center; color: var(--muted); }
+.ciclo-piede .ciclo-giorno { color: var(--text); }
+.ciclo-piede .small { margin: 0; }
 .ciclo .row-btns { margin: 12px 0 8px; align-items: center; }
 .link-piccolo { min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .88rem; text-decoration: underline; cursor: pointer; }
 .ciclo-altro[hidden] { display: none; }
@@ -387,10 +390,8 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .ponte-get { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .ponte-get .rimando { margin-top: 4px; }
 
-/* In ricordo di Marsha Linehan: scheda in apertura (js/app.js, ricordo) e riquadro in «Su Marsa». */
-.ricordo, .ricordo-info { text-align: center; }
-.ricordo .chip { margin-top: 12px; }
+/* In ricordo di Marsha Linehan: riquadro in «Su Marsa». */
+.ricordo-info { text-align: center; }
 .ricordo-info { margin: 1.6rem 0 0; }
 .ricordo-info .nome { margin: 0; font-family: var(--serif); font-size: 1.1rem; }
 .ricordo-info .sotto { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
-.ricordo .nome { font-size: 1.25rem; }

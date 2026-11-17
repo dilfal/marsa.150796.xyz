@@ -15,3 +15,6 @@ arte_grezza/
 
 # Foto di riferimento per le illustrazioni (solo locali)
 riferimenti/
+
+# Impostazioni locali di Claude Code
+.claude/

@@ -49,20 +49,6 @@
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
     v.insertBefore(box, v.firstChild);
   }
-  /* In ricordo di Marsha Linehan (1943–2026): scheda in apertura fino all’11 dicembre 2026, finché non la si chiude.
-     Dopo resta solo in «Su Marsa» (index.html). */
-  function ricordo() {
-    if (new Date() >= new Date(2026, 11, 12) || load(K.ricordo, 0)) return null;
-    var card = h('div', { class: 'card tema-card ricordo' },
-      fascia('linehan'),
-      h('p', { class: 'nome', text: 'In ricordo di Marsha Linehan' }),
-      h('p', { class: 'sotto', text: '1943–2026' }),
-      h('button', { class: 'chip', type: 'button', text: 'Chiudi', onclick: function () {
-        save(K.ricordo, 1);
-        if (card.parentNode) card.parentNode.removeChild(card);
-      } }));
-    return card;
-  }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
   /* La «sera» finisce alle 5 del mattino: dopo mezzanotte conta ancora la serata di ieri. */
@@ -329,7 +315,6 @@
         h('h1', { text: saluto() }),
         sceltaMomento(),
         cartaCiclo(false)),
-      ricordo(),
       h('div', { class: 'card tema-card', 'data-colore': t.colore },
         fascia(t.id),
         h('p', { class: 'sotto', text: S.oggi ? 'Il tema di stasera' : 'Un altro tema, per stasera' }),
@@ -588,6 +573,8 @@
     radice.appendChild(h('div', { class: 'nav-passi' },
       !S.oggi ? h('a', { class: 'btn btn-ghost', href: '#sere', text: 'Le sere' }) : null,
       h('button', { class: 'btn' + (S.oggi ? ' btn-block' : ''), type: 'button', text: 'Cominciamo', onclick: function () { vaiPasso(1); } })));
+    var piede = piedeCiclo();
+    if (piede) radice.appendChild(piede);
   }
   function disegnaSerata() {
     fermaRespiri();
@@ -877,7 +864,6 @@
     var i = Math.max(0, Math.min(G.sub || 0, L.length)), id = L[i] || 'fine';
     if (i === 0 || id === 'fine') radice.appendChild(heroMomento());
     if (id === 'fine') { disegnaFineMomento(); return; }
-    if (i === 0) { var rc = ricordo(); if (rc) radice.appendChild(rc); }
     if (i === 0) radice.appendChild(h('div', { class: 'card tema-card', 'data-colore': G.momento === 'notte' ? 'blue' : G.momento === 'mattina' ? 'amber' : 'teal' },
       fascia(G.momento),
       h('p', { class: 'sotto', text: M.nome }),
@@ -968,6 +954,7 @@
       h('button', { class: 'btn', type: 'button', text: ultimo ? 'Ho finito' : 'Avanti', onclick: function () {
         if (ultimo) { G.fatto = true; vaiMomento(L.length); } else vaiMomento(i + 1);
       } })));
+    if (i === 0) { var piede = piedeCiclo(); if (piede) radice.appendChild(piede); }
   }
   function disegnaFineMomento() {
     var m = G.momento, righe = [];
@@ -1627,6 +1614,16 @@
     else if (av.tipo === 'prima') testo = CI.frasePersonale(c, datiCiclo()).personale ? CI.TESTI.personale : CI.TESTI.prima;
     return { c: c, oggi: oggi, tipo: av.tipo, giorno: av.giorno, testo: testo };
   }
+  /* in fondo alla pagina iniziale: il giorno del ciclo e il prossimo probabile; null se la funzione è spenta o non c’è nulla da dire */
+  function piedeCiclo() {
+    var st = cicloStato();
+    if (!st) return null;
+    var pr = CI.prossimo(st.c, st.oggi);
+    if (!st.giorno && !pr) return null;
+    return h('div', { class: 'ciclo-piede' },
+      st.giorno ? h('p', { class: 'ciclo-giorno', text: 'Giorno ' + st.giorno + ' del ciclo' }) : null,
+      pr ? h('p', { class: 'small ciclo-prossimo', text: 'Il prossimo probabilmente tra ' + pr.da + ' e ' + pr.a + ' giorni' }) : null);
+  }
   /* la scheda di «Oggi»: il tasto «È iniziato il ciclo», il giorno del ciclo e, di mattina, la riga in evidenza */
   function cartaCiclo(conRiga, messaggio) {
     var st = cicloStato();
@@ -1635,6 +1632,13 @@
     function ridisegna(msg) {
       var nuova = cartaCiclo(conRiga, msg);
       if (box.parentNode) { if (nuova) box.parentNode.replaceChild(nuova, box); else box.parentNode.removeChild(box); }
+      aggiornaPiede();
+    }
+    /* il piede di pagina (giorno del ciclo) segue lo stato: si sostituisce, si toglie o, se manca, si crea in fondo */
+    function aggiornaPiede() {
+      var vecchio = radice.querySelector('.ciclo-piede'), nuovo = piedeCiclo();
+      if (vecchio) { if (nuovo) vecchio.parentNode.replaceChild(nuovo, vecchio); else vecchio.parentNode.removeChild(vecchio); }
+      else if (nuovo && radice.querySelector('.nav-passi') && !radice.querySelector('.card.fatto')) radice.appendChild(nuovo);
     }
     function segna(d, msg) {
       var cc = cicloLeggi(), vic = CI.inizioVicino(cc, d);
@@ -1646,9 +1650,6 @@
       ridisegna(msg);
     }
     if (conRiga && st.testo) box.appendChild(h('p', { class: 'ciclo-riga', text: st.testo }));
-    if (st.giorno) box.appendChild(h('p', { class: 'ciclo-giorno', text: 'Giorno ' + st.giorno + ' del ciclo' }));
-    var pr = CI.prossimo(c, st.oggi);
-    if (pr) box.appendChild(h('p', { class: 'small ciclo-prossimo', text: 'Il prossimo probabilmente tra ' + pr.da + ' e ' + pr.a + ' giorni' }));
     if (!c.inizi.length) box.appendChild(h('p', { class: 'small', text: 'Segna il primo giorno del ciclo: da lì Marsa conta i giorni.' }));
     var msg = h('p', { class: 'small ciclo-msg', role: 'status', 'aria-live': 'polite', text: messaggio || '' });
     var inData = h('input', { type: 'date', id: 'ciclo-altra-data', max: st.oggi, 'aria-label': 'Primo giorno del ciclo' });
