@@ -1,5 +1,5 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v34';
+var CACHE = 'marsa-v35';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/litigi.js', 'js/coppia.js', 'js/ciclo.js', 'js/notifiche.js', 'js/app.js',
@@ -14,6 +14,8 @@ var TRACCE = [
 var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore',
   'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'linehan_scena',
   'coppia', 'litigi', 'accettare', 'parole', 'ciclo', 'emo-tristezza', 'emo-ansia', 'emo-rabbia', 'emo-vergogna', 'emo-colpa', 'emo-solitudine', 'emo-vuoto', 'emo-delusione', 'emo-gelosia', 'emo-stanca', 'emo-sollievo', 'emo-gratitudine'].map(function (n) { return 'img/' + n + '.webp'; });
+/* Illustrazioni nuove (testate, fine-*, sc-*, acc-*, lit-*): per accenderne una si aggiunge il nome qui e in IMMAGINI_EXTRA / TESTATE di js/app.js. Facoltative come sopra. */
+var IMMAGINI_EXTRA = ['diario', 'perte', 'sere', 'su-marsa', 'fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */
@@ -22,7 +24,7 @@ function nuova(percorso) { return new Request(percorso, { cache: 'reload' }); }
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     return Promise.all(FILES.map(function (f) { return c.add(nuova(f)); })).then(function () {
-      return Promise.all(TRACCE.concat(IMMAGINI).map(function (t) { return c.add(nuova(t)).catch(function () { /* niente */ }); }));
+      return Promise.all(TRACCE.concat(IMMAGINI, IMMAGINI_EXTRA).map(function (t) { return c.add(nuova(t)).catch(function () { /* niente */ }); }));
     });
   }).then(function () { return self.skipWaiting(); }));
 });

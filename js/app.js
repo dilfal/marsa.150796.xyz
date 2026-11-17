@@ -31,23 +31,37 @@
   /* Illustrazione in fascia 2:1 in cima a una scheda (img/<id>.webp). Decorativa: alt vuoto; se manca, sparisce. */
   var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore', 'mattina',
     'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'coppia'];   /* si allunga a ogni pubblicazione */
+  /* Per accendere un’immagine nuova (fine-*, sc-*, acc-*, lit-*): aggiungi il nome qui e in IMMAGINI_EXTRA di sw.js; per una testata, anche in TESTATE. */
+  var IMMAGINI_EXTRA = ['fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare', 'diario', 'perte', 'sere', 'su-marsa'];
+  function pronta(id) { return !!id && (IMMAGINI_PRONTE.indexOf(id) >= 0 || IMMAGINI_EXTRA.indexOf(id) >= 0); }
   function fascia(id, cls) {
-    if (!id || IMMAGINI_PRONTE.indexOf(id) < 0) return null;
+    if (!pronta(id)) return null;
     var box = h('div', { class: 'fascia' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
     box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', decoding: 'async',
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
     return box;
   }
-  /* Testata di una pagina da consultare (img/<id>.webp, 2:1 ma più bassa): si mette una volta sola in cima alla vista, prima del titolo.
-     Decorativa; se il file manca, sparisce. */
-  var TESTATE = ['litigi', 'accettare', 'parole'];
-  function testata(idVista, id) {
-    var v = $('#v-' + idVista);
-    if (!v || TESTATE.indexOf(id) < 0 || v.querySelector('.fascia-testata')) return;
+  /* Illustrazione piccola (800×400) dentro una scheda o una voce: `cls` 'fascia-vignetta' per le scene della sera. Come sopra: se non c’è, niente. */
+  function illustra(id, cls) {
+    if (!pronta(id)) return null;
+    var box = h('div', { class: 'fascia fascia-piccola' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
+    box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '800', height: '400', loading: 'lazy', decoding: 'async',
+      onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
+    return box;
+  }
+  /* Testata di una pagina da consultare (img/<id>.webp, 2:1 ma più bassa): si mette una volta sola in cima, prima del titolo.
+     Decorativa; se il file manca, sparisce. Le testate pronte stanno in TESTATE. */
+  var TESTATE = ['litigi', 'accettare', 'parole', 'diario', 'perte', 'sere', 'su-marsa'];
+  function mettiTestata(cont, prima, id) {
+    if (!cont || TESTATE.indexOf(id) < 0 || cont.querySelector('.fascia-testata')) return;
     var box = h('div', { class: 'fascia fascia-piccola fascia-testata', 'aria-hidden': 'true' });
     box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', loading: 'lazy', decoding: 'async',
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
-    v.insertBefore(box, v.firstChild);
+    cont.insertBefore(box, prima || null);
+  }
+  function testata(idVista, id) {
+    var v = $('#v-' + idVista);
+    if (v) mettiTestata(v, v.firstChild, id);
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -636,7 +650,7 @@
         card.appendChild(h('p', { class: 'small', text: 'Quello che scrivi resta solo sul tuo telefono. Puoi lasciare vuoto qualsiasi campo.' }));
       }
       radice.appendChild(card);
-      if (P2) sceneDi(t, S.serie).forEach(function (q) { radice.appendChild(h('div', { class: 'card quiz' }, cartaDomanda(q))); });
+      if (P2) sceneDi(t, S.serie).forEach(function (q) { radice.appendChild(h('div', { class: 'card quiz' }, illustra('sc-' + q.id, 'fascia-vignetta'), cartaDomanda(q))); });
       radice.appendChild(navPassi(1, 3, 'Avanti, la buonanotte'));
       return;
     }
@@ -1046,6 +1060,8 @@
         : diff < 0 ? 'Stasera la tensione è salita: da «' + LIVELLI[lp].nome + '» a «' + LIVELLI[ld].nome + '». Capita, e non vuol dire che hai sbagliato qualcosa.'
           : 'La tensione è rimasta uguale (' + LIVELLI[lp].nome + '). Anche essere venuta qui conta.';
     var ri = riepilogoSerata();
+    var imgFine = fascia('fine-' + t.id, 'fascia-piccola');   /* chiusura del tema: la stessa scena, a sera fatta */
+    if (imgFine) radice.appendChild(imgFine);
     radice.appendChild(h('div', { class: 'card fatto' },
       h('h1', { text: 'Serata fatta' }),
       h('p', { class: 'lede', text: riga }),
@@ -1070,6 +1086,7 @@
   /* ---------- LE SETTE SERE ---------- */
   function disegnaSere() {
     var el = $('#sere-lista');
+    testata('sere', 'sere');
     clear(el);
     var oggiG = seraDi(new Date()).getDay();
     [1, 2, 3, 4, 5, 6, 0].forEach(function (g) {
@@ -1122,6 +1139,7 @@
   }
   function disegnaDiario() {
     var el = $('#diario-lista');
+    testata('diario', 'diario');
     clear(el);
     disegnaCicloInizi();
     var note = tutteLeNote(), giorni = tuttiIGiorni();
@@ -1279,6 +1297,7 @@
   /* ---------- PER TE: il profilo personale (solo se importato) ---------- */
   function disegnaPerTe() {
     var el = $('#perte-lista');
+    testata('perte', 'perte');
     clear(el);
     if (!PROF) return;
     el.appendChild(h('p', { class: 'lede', text: 'Questo profilo è solo tuo e resta su questo telefono. Spiega come lavorano le tue difficoltà e le tue risorse, con i termini tecnici e le parole semplici accanto.' }));
@@ -1340,14 +1359,14 @@
     var testo = h('div', { class: 'testo' });
     AC.esempio.testo.forEach(function (p) { testo.appendChild(h('p', { text: p })); });
     if (AC.inBreve) el.appendChild(h('p', { class: 'in-breve', text: AC.inBreve }));
-    el.appendChild(h('div', { class: 'card' }, h('h2', { text: AC.esempio.titolo }), testo));
+    el.appendChild(h('div', { class: 'card' }, illustra(AC.esempio.img), h('h2', { text: AC.esempio.titolo }), testo));
     if (AC.prova) {
       var lista = h('ol', { class: 'passi-lista' });
       AC.prova.passi.forEach(function (p) { lista.appendChild(h('li', { text: p })); });
       el.appendChild(h('div', { class: 'card prova-card' }, h('h2', { text: AC.prova.titolo }), lista));
     }
     AC.voci.forEach(function (v) {
-      var corpo = h('div', { class: 'acc-body' });
+      var corpo = h('div', { class: 'acc-body' }, illustra(v.img));
       v.testo.forEach(function (p) { corpo.appendChild(h('p', { text: p })); });
       el.appendChild(h('details', { class: 'acc', id: prefissoId + v.id }, h('summary', { text: v.titolo }), corpo));
     });
@@ -1781,6 +1800,8 @@
   $('#btn-info').addEventListener('click', function () {
     $('#info-nome').value = load(K.nome, '');
     cicloUI();
+    var din = $('#dlg-info .dlg-in'), dh = din && din.querySelector('.dlg-head');
+    if (dh) mettiTestata(din, dh.nextSibling, 'su-marsa');   /* testata di «Su Marsa» (quando il file è pronto) */
     var v = A.Version;
     $('#info-versione').textContent = v ? 'Versione ' + v.v + ' · ' + v.date : '';
     apri($('#dlg-info'));

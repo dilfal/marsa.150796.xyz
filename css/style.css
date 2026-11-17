@@ -355,6 +355,8 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 /* Testata delle pagine da consultare e immagine del ciclo: la fascia, ma più bassa e con gli angoli arrotondati. */
 .fascia.fascia-testata { aspect-ratio: 5 / 2; margin: 0 0 14px; }
 .fascia.fascia-ciclo { max-width: 240px; margin: 0 0 10px; }
+/* Vignetta di una scena della sera (800×400, ritagliata un po' più bassa). */
+.fascia.fascia-vignetta { aspect-ratio: 5 / 2; }
 /* Le emozioni: figura piccola accanto al nome. */
 .acc-emo summary { gap: 14px; padding: 8px 16px; }
 .emo-img { width: 96px; height: 96px; flex: none; border-radius: 16px; object-fit: cover; background: var(--line); }

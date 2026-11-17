@@ -6,6 +6,7 @@ window.Marsa = window.Marsa || {};
 window.Marsa.Litigi = {
   lede: 'Litigare, in una coppia, è normale. Quello che pesa è come si litiga e come ci si ritrova. Qui è spiegato piano, partendo da una serata. Da leggere quando vuoi, senza dover rispondere a niente.',
   esempio: {
+    img: 'lit-esempio',
     titolo: 'Cominciamo da una serata',
     testo: [
       'Sono le nove. Torni a casa stanca e trovi i piatti ancora nel lavandino. Dici: «Ma possibile che non lo fai mai?».',
@@ -16,7 +17,7 @@ window.Marsa.Litigi = {
   },
   voci: [
     {
-      id: 'onda', titolo: 'L’onda sale, e il corpo si allaga',
+      id: 'onda', img: 'lit-onda', titolo: 'L’onda sale, e il corpo si allaga',
       testo: [
         'Quando l’emozione è molto alta, il corpo va in allarme: il cuore accelera, la gola si stringe, la voce sale, lo sguardo si restringe. In quel momento ascoltare e ragionare è quasi impossibile. Si chiama flooding, essere inondati.',
         'In più, quando l’onda sale, riaffiorano altre volte in cui ti sei sentita così: «e quella volta…», «come sempre…». La serata sembra più grande, e i pensieri diventano neri o bianchi, senza vie di mezzo.',
@@ -35,7 +36,7 @@ window.Marsa.Litigi = {
       ]
     },
     {
-      id: 'pausa', titolo: 'La pausa e il muro',
+      id: 'pausa', img: 'lit-pausa', titolo: 'La pausa e il muro',
       testo: [
         'La pausa è un accordo: ci fermiamo, ci calmiamo e torniamo. Si chiama anche time-out, tempo fuori. Funziona se c’è una cosa che il muro non ha: si dice ad alta voce, e si dice quando si torna.',
         'Esempio: «Sto salendo, ho bisogno di una pausa. Non me ne vado: torno alle dieci». È diverso dallo sbattere la porta, dallo sparire o dal restare in silenzio gelido, che sono modi di punire. Chi resta, con la pausa detta, sa che non è un addio. Per chi ha paura dell’abbandono, questa frase vale molto.',
@@ -45,7 +46,7 @@ window.Marsa.Litigi = {
       ]
     },
     {
-      id: 'giro', titolo: 'Il vostro giro',
+      id: 'giro', img: 'lit-giro', titolo: 'Il vostro giro',
       testo: [
         'Esempio: l’altra persona è silenziosa tutta la sera. Dentro di te sale la paura: «non ci tiene più a me». Chiedi, controlli, poi attacchi: «dimmi qualcosa!». L’altra persona si sente messa alle strette e si chiude ancora di più. La tua paura peggiora. Premi di più.',
         'Questo è il giro: una paura (che l’altra persona se ne vada) → una mossa che prova a tenerla vicina (controllo o attacco) → l’altra persona si difende o si chiude → la paura cresce. Nelle terapie di coppia si chiama a volte il ciclo di richiesta e ritiro. Nessuno è il cattivo: sono due modi di proteggersi che si incastrano.',
@@ -55,7 +56,7 @@ window.Marsa.Litigi = {
       ]
     },
     {
-      id: 'riparare', titolo: 'Riparare, il giorno dopo',
+      id: 'riparare', img: 'lit-riparare', titolo: 'Riparare, il giorno dopo',
       testo: [
         'Dopo una serata così, spesso resta una domanda: «e adesso?». Riparare non vuol dire dimenticare: vuol dire tornare, a mente più calma, e dirsi che il legame c’è ancora.',
         'Primo: riconosci la tua parte, concreta e piccola. «Ieri ho alzato la voce e ti ho detto cose per farti male. Mi dispiace.» Non serve «è tutta colpa mia». E fai attenzione alla vergogna: «sono un disastro» ti spinge a nasconderti o ad attaccare di nuovo. «Ho fatto una cosa che ha fatto male» ti lascia in piedi.',
@@ -65,7 +66,7 @@ window.Marsa.Litigi = {
       ]
     },
     {
-      id: 'accettare', titolo: 'Prima capirsi, poi accordarsi',
+      id: 'accettare', img: 'lit-accettare', titolo: 'Prima capirsi, poi accordarsi',
       testo: [
         'Nella terapia degli schemi di coppia c’è un principio semplice: l’accettazione viene prima dell’accordo. Accettare vuol dire riconoscere come l’altra persona ha vissuto la cosa: «Capisco che per te quella frase era un attacco». Non vuol dire dare ragione.',
         'Esempio: dopo un litigio sul denaro, la prima cosa non è decidere chi ha ragione: è dire «vedo che per te era importante sentire che qualcuno ti ascoltava». Quando ci si sente capiti, l’allarme cala, e l’accordo diventa possibile. Senza, ogni accordo è una resa.',

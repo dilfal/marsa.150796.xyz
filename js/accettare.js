@@ -6,6 +6,7 @@ window.Marsa.Accettare = {
   lede: 'È una delle abilità più difficili da capire, e non solo per te: lo scrive anche Marsha Linehan nel suo manuale. Qui è spiegata piano, partendo da una cosa piccola. Da leggere quando vuoi, senza dover rispondere a niente.',
   inBreve: 'In una frase: accettare è smettere di litigare con un fatto che c’è già, così ti restano le forze per decidere che cosa fare.',
   esempio: {
+    img: 'acc-esempio',
     titolo: 'Cominciamo da una cosa piccola',
     testo: [
       'Avevi voglia di uscire a camminare, e piove.',
@@ -42,7 +43,7 @@ window.Marsa.Accettare = {
       ]
     },
     {
-      id: 'serve', titolo: 'A che cosa serve',
+      id: 'serve', img: 'acc-serve', titolo: 'A che cosa serve',
       testo: [
         'Rifiutare un fatto non lo cambia. Il dolore c’è comunque; la lotta contro la realtà ci aggiunge sopra altra sofferenza. Dolore più lotta fa sofferenza: accettare toglie la lotta, non il dolore.',
         'E serve per cambiare. Sembra il contrario, ma per cambiare una cosa bisogna prima vederla com’è. Finché ti ripeti che non dovrebbe essere così, non riesci a guardare che cosa puoi fare.',
@@ -50,7 +51,7 @@ window.Marsa.Accettare = {
       ]
     },
     {
-      id: 'fatti', titolo: 'Che cosa si accetta, e che cosa no',
+      id: 'fatti', img: 'acc-fatti', titolo: 'Che cosa si accetta, e che cosa no',
       testo: [
         'Si accettano i fatti: ciò che è già successo e ciò che c’è adesso. «Ho perso l’autobus». «Mi ha risposto alzando la voce». «Stasera sono triste».',
         'Non si accettano i giudizi e le previsioni, perché non sono fatti. «Sono un disastro» è un giudizio. «Andrà sempre così» è una paura sul futuro. Di questi pensieri puoi accettare una cosa sola: che in questo momento li stai pensando.',
@@ -65,7 +66,7 @@ window.Marsa.Accettare = {
       ]
     },
     {
-      id: 'come', titolo: 'Come si fa',
+      id: 'come', img: 'acc-come', titolo: 'Come si fa',
       testo: [
         'Non si decide una volta per tutte. È come un bivio che torna: da una parte «non doveva andare così», dall’altra «è andata così». Ogni volta che ti accorgi di essere sulla prima strada, giri la mente verso la seconda. Linehan lo chiama orientare la mente. Può servire farlo dieci volte in un’ora: è normale, non vuol dire che non funziona.',
         'Come ti accorgi che stai lottando: la rabbia o l’amarezza che tornano, le spalle tese, pensieri come «perché proprio a me?» o «non è possibile».',
@@ -75,7 +76,7 @@ window.Marsa.Accettare = {
       ]
     },
     {
-      id: 'male', titolo: 'Se accettare fa male',
+      id: 'male', img: 'acc-male', titolo: 'Se accettare fa male',
       testo: [
         'Quando smetti di lottare, a volte arriva la tristezza. Non è un passo indietro: a volte era lì sotto, coperta dalla rabbia. Spesso, dopo, viene una calma più profonda, come un peso che si alza.',
         'Se la tristezza è troppa, fermati. Torna a ciò che calma il corpo, il respiro lento e i cinque sensi, e riprova un altro giorno. Non è una gara, e non riuscirci subito è normale.'
