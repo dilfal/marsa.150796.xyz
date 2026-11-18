@@ -369,6 +369,7 @@ dialog::backdrop { background: rgba(5,4,10,.7); }
 .ciclo .small { margin: 0 0 8px; }
 .ciclo-piede { margin: 2rem 0 1rem; text-align: center; color: var(--muted); }
 .ciclo-piede .ciclo-giorno { color: var(--text); }
+.ciclo-piede .ciclo-frase { margin: 0 0 10px; color: var(--text); line-height: 1.55; }
 .ciclo-piede .small { margin: 0; }
 .ciclo .row-btns { margin: 12px 0 8px; align-items: center; }
 .link-piccolo { min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .88rem; text-decoration: underline; cursor: pointer; }

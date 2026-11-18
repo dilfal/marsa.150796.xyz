@@ -595,7 +595,7 @@
     radice.appendChild(h('div', { class: 'nav-passi' },
       !S.oggi ? h('a', { class: 'btn btn-ghost', href: '#sere', text: 'Le sere' }) : null,
       h('button', { class: 'btn' + (S.oggi ? ' btn-block' : ''), type: 'button', text: 'Cominciamo', onclick: function () { vaiPasso(1); } })));
-    var piede = piedeCiclo();
+    var piede = piedeCiclo(false);
     if (piede) radice.appendChild(piede);
   }
   function disegnaSerata() {
@@ -976,7 +976,7 @@
       h('button', { class: 'btn', type: 'button', text: ultimo ? 'Ho finito' : 'Avanti', onclick: function () {
         if (ultimo) { G.fatto = true; vaiMomento(L.length); } else vaiMomento(i + 1);
       } })));
-    if (i === 0) { var piede = piedeCiclo(); if (piede) radice.appendChild(piede); }
+    if (i === 0) { var piede = piedeCiclo(G.momento === 'mattina'); if (piede) radice.appendChild(piede); }
   }
   function disegnaFineMomento() {
     var m = G.momento, righe = [];
@@ -1642,19 +1642,24 @@
   function cicloStato() {
     var c = cicloLeggi();
     if (!CI || !c.attivo) return null;
-    var oggi = oggiCal(), av = CI.avviso(c, oggi), testo = '';
-    if (av.tipo === 'inizio') testo = CI.TESTI.inizio(av.giorno);
-    else if (av.tipo === 'prima') testo = CI.frasePersonale(c, datiCiclo()).personale ? CI.TESTI.personale : CI.TESTI.prima;
+    var oggi = oggiCal(), av = CI.avviso(c, oggi), fr = CI.fraseDelGiorno(c, oggi), testo = fr ? fr.testo : '';
+    if (av.tipo === 'prima') {   /* sette giorni prima: se negli ultimi cicli quei giorni pesavano, la frase personale */
+      var pv = CI.previsione(c, oggi);
+      if (pv && CI.gg(pv.primo) - CI.gg(oggi) === 7 && CI.frasePersonale(c, datiCiclo()).personale) testo = CI.TESTI.personale;
+    }
+    if (!testo) testo = av.tipo === 'inizio' ? CI.TESTI.inizio(av.giorno) : av.tipo === 'prima' ? CI.TESTI.prima : '';
     return { c: c, oggi: oggi, tipo: av.tipo, giorno: av.giorno, testo: testo };
   }
-  /* in fondo alla pagina iniziale: il giorno del ciclo e il prossimo probabile; null se la funzione è spenta o non c’è nulla da dire */
-  function piedeCiclo() {
+  /* in fondo alla pagina iniziale: il giorno del ciclo, la frase del giorno e il prossimo probabile; null se la funzione è spenta o non c’è nulla da dire.
+     La frase sta qui, tranne di mattina nei giorni con avviso: lì è già la riga in evidenza della scheda in alto (conRiga), così non compare due volte. */
+  function piedeCiclo(conRiga) {
     var st = cicloStato();
     if (!st) return null;
-    var pr = CI.prossimo(st.c, st.oggi);
-    if (!st.giorno && !pr) return null;
+    var pr = CI.prossimo(st.c, st.oggi), frase = st.testo && !(conRiga && st.tipo) ? st.testo : '';
+    if (!st.giorno && !pr && !frase) return null;
     return h('div', { class: 'ciclo-piede' },
       st.giorno ? h('p', { class: 'ciclo-giorno', text: 'Giorno ' + st.giorno + ' del ciclo' }) : null,
+      frase ? h('p', { class: 'ciclo-frase', text: frase }) : null,
       pr ? h('p', { class: 'small ciclo-prossimo', text: 'Il prossimo probabilmente tra ' + pr.da + ' e ' + pr.a + ' giorni' }) : null);
   }
   /* la scheda di «Oggi»: il tasto «È iniziato il ciclo», il giorno del ciclo e, di mattina, la riga in evidenza */
@@ -1669,7 +1674,7 @@
     }
     /* il piede di pagina (giorno del ciclo) segue lo stato: si sostituisce, si toglie o, se manca, si crea in fondo */
     function aggiornaPiede() {
-      var vecchio = radice.querySelector('.ciclo-piede'), nuovo = piedeCiclo();
+      var vecchio = radice.querySelector('.ciclo-piede'), nuovo = piedeCiclo(conRiga);
       if (vecchio) { if (nuovo) vecchio.parentNode.replaceChild(nuovo, vecchio); else vecchio.parentNode.removeChild(vecchio); }
       else if (nuovo && radice.querySelector('.nav-passi') && !radice.querySelector('.card.fatto')) radice.appendChild(nuovo);
     }
@@ -1682,7 +1687,7 @@
       cicloScrivi(cc);
       ridisegna(msg);
     }
-    if (conRiga && st.testo) box.appendChild(h('p', { class: 'ciclo-riga', text: st.testo }));
+    if (conRiga && st.tipo && st.testo) box.appendChild(h('p', { class: 'ciclo-riga', text: st.testo }));
     if (!c.inizi.length) box.appendChild(h('p', { class: 'small', text: 'Segna il primo giorno del ciclo: da lì Marsa conta i giorni.' }));
     var msg = h('p', { class: 'small ciclo-msg', role: 'status', 'aria-live': 'polite', text: messaggio || '' });
     var inData = h('input', { type: 'date', id: 'ciclo-altra-data', max: st.oggi, 'aria-label': 'Primo giorno del ciclo' });
