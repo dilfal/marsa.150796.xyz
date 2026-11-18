@@ -1305,9 +1305,9 @@
   /* ---------- PER TE: il profilo personale (solo se importato) ---------- */
   function disegnaPerTe() {
     var el = $('#perte-lista');
-    testata('perte', 'perte');
     clear(el);
     if (!PROF) return;
+    testata('perte', 'perte');
     el.appendChild(h('p', { class: 'lede', text: 'Questo profilo è solo tuo e resta su questo telefono. Spiega come lavorano le tue difficoltà e le tue risorse, con i termini tecnici e le parole semplici accanto.' }));
     PROF.aree.forEach(function (a) {
       var corpo = h('div', { class: 'acc-body' });
