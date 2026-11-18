@@ -1,5 +1,5 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v35';
+var CACHE = 'marsa-v36';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/litigi.js', 'js/coppia.js', 'js/ciclo.js', 'js/notifiche.js', 'js/app.js',
@@ -15,7 +15,15 @@ var IMMAGINI = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 're
   'mattina', 'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'linehan_scena',
   'coppia', 'litigi', 'accettare', 'parole', 'ciclo', 'emo-tristezza', 'emo-ansia', 'emo-rabbia', 'emo-vergogna', 'emo-colpa', 'emo-solitudine', 'emo-vuoto', 'emo-delusione', 'emo-gelosia', 'emo-stanca', 'emo-sollievo', 'emo-gratitudine'].map(function (n) { return 'img/' + n + '.webp'; });
 /* Illustrazioni nuove (testate, fine-*, sc-*, acc-*, lit-*): per accenderne una si aggiunge il nome qui e in IMMAGINI_EXTRA / TESTATE di js/app.js. Facoltative come sopra. */
-var IMMAGINI_EXTRA = ['diario', 'perte', 'sere', 'su-marsa', 'fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare'].map(function (n) { return 'img/' + n + '.webp'; });
+var IMMAGINI_EXTRA = ['diario', 'perte', 'sere', 'su-marsa',
+    'sc-base-1', 'sc-base-2', 'sc-base-3', 'sc-base-4', 'sc-base-b1', 'sc-base-b2', 'sc-base-b3', 'sc-base-b4',
+    'sc-coppia-1', 'sc-coppia-2', 'sc-coppia-3', 'sc-coppia-4', 'sc-coppia-5', 'sc-disagio-1', 'sc-disagio-2', 'sc-disagio-3',
+    'sc-disagio-4', 'sc-disagio-5', 'sc-disagio-b1', 'sc-disagio-b2', 'sc-disagio-b3', 'sc-disagio-b4', 'sc-emozioni-1', 'sc-emozioni-2',
+    'sc-emozioni-3', 'sc-emozioni-4', 'sc-emozioni-b1', 'sc-emozioni-b2', 'sc-emozioni-b3', 'sc-emozioni-b4', 'sc-mentalizzare-1', 'sc-mentalizzare-2',
+    'sc-mentalizzare-3', 'sc-mentalizzare-4', 'sc-mentalizzare-b1', 'sc-mentalizzare-b2', 'sc-mentalizzare-b3', 'sc-mentalizzare-b4', 'sc-presenza-1', 'sc-presenza-2',
+    'sc-presenza-3', 'sc-presenza-4', 'sc-presenza-b1', 'sc-presenza-b2', 'sc-presenza-b3', 'sc-presenza-b4', 'sc-relazioni-1', 'sc-relazioni-2',
+    'sc-relazioni-3', 'sc-relazioni-4', 'sc-relazioni-b1', 'sc-relazioni-b2', 'sc-relazioni-b3', 'sc-relazioni-b4', 'sc-valore-1', 'sc-valore-2',
+    'sc-valore-3', 'sc-valore-4', 'sc-valore-b1', 'sc-valore-b2', 'sc-valore-b3', 'sc-valore-b4', 'fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare'].map(function (n) { return 'img/' + n + '.webp'; });
 var ATTESA_RETE = 3000;
 
 /* «reload»: scarica davvero dalla rete, senza passare dalla cache del browser (che per GitHub Pages dura 10 minuti). */

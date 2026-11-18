@@ -32,7 +32,15 @@
   var IMMAGINI_PRONTE = ['benvenuto', 'base', 'presenza', 'emozioni', 'mentalizzare', 'relazioni', 'disagio', 'valore', 'mattina',
     'pomeriggio', 'notte', 'stop', 'posto', 'amica', 'onda', 'linehan', 'coppia'];   /* si allunga a ogni pubblicazione */
   /* Per accendere un’immagine nuova (fine-*, sc-*, acc-*, lit-*): aggiungi il nome qui e in IMMAGINI_EXTRA di sw.js; per una testata, anche in TESTATE. */
-  var IMMAGINI_EXTRA = ['fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare', 'diario', 'perte', 'sere', 'su-marsa'];
+  var IMMAGINI_EXTRA = ['fine-base', 'fine-presenza', 'fine-emozioni', 'fine-mentalizzare', 'fine-relazioni', 'fine-disagio', 'fine-valore', 'fine-coppia', 'acc-esempio', 'acc-serve', 'acc-fatti', 'acc-come', 'acc-male', 'lit-esempio', 'lit-onda', 'lit-pausa', 'lit-giro', 'lit-riparare', 'lit-accettare',
+    'sc-base-1', 'sc-base-2', 'sc-base-3', 'sc-base-4', 'sc-base-b1', 'sc-base-b2', 'sc-base-b3', 'sc-base-b4',
+    'sc-coppia-1', 'sc-coppia-2', 'sc-coppia-3', 'sc-coppia-4', 'sc-coppia-5', 'sc-disagio-1', 'sc-disagio-2', 'sc-disagio-3',
+    'sc-disagio-4', 'sc-disagio-5', 'sc-disagio-b1', 'sc-disagio-b2', 'sc-disagio-b3', 'sc-disagio-b4', 'sc-emozioni-1', 'sc-emozioni-2',
+    'sc-emozioni-3', 'sc-emozioni-4', 'sc-emozioni-b1', 'sc-emozioni-b2', 'sc-emozioni-b3', 'sc-emozioni-b4', 'sc-mentalizzare-1', 'sc-mentalizzare-2',
+    'sc-mentalizzare-3', 'sc-mentalizzare-4', 'sc-mentalizzare-b1', 'sc-mentalizzare-b2', 'sc-mentalizzare-b3', 'sc-mentalizzare-b4', 'sc-presenza-1', 'sc-presenza-2',
+    'sc-presenza-3', 'sc-presenza-4', 'sc-presenza-b1', 'sc-presenza-b2', 'sc-presenza-b3', 'sc-presenza-b4', 'sc-relazioni-1', 'sc-relazioni-2',
+    'sc-relazioni-3', 'sc-relazioni-4', 'sc-relazioni-b1', 'sc-relazioni-b2', 'sc-relazioni-b3', 'sc-relazioni-b4', 'sc-valore-1', 'sc-valore-2',
+    'sc-valore-3', 'sc-valore-4', 'sc-valore-b1', 'sc-valore-b2', 'sc-valore-b3', 'sc-valore-b4', 'diario', 'perte', 'sere', 'su-marsa'];
   function pronta(id) { return !!id && (IMMAGINI_PRONTE.indexOf(id) >= 0 || IMMAGINI_EXTRA.indexOf(id) >= 0); }
   function fascia(id, cls) {
     if (!pronta(id)) return null;
