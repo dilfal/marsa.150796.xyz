@@ -1,3 +1,3 @@
 /* Marsa – versione del sito. Questo file lo riscrive tools/aggiorna.py: non modificarlo a mano. */
 window.Marsa = window.Marsa || {};
-window.Marsa.Version = { v: '1.27', date: '2026-11-19 17:25' };
+window.Marsa.Version = { v: '1.28', date: '2026-11-19 18:26' };
