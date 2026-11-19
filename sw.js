@@ -1,5 +1,5 @@
 /* Marsa – service worker: tiene l’app in memoria per usarla anche senza rete. */
-var CACHE = 'marsa-v40';
+var CACHE = 'marsa-v41';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'css/style.css', 'js/version.js', 'js/contenuti.js', 'js/percorso.js', 'js/percorso_b.js', 'js/arrivo.js', 'js/tecniche.js', 'js/giornata.js', 'js/giornata_temi.js', 'js/accettare.js', 'js/litigi.js', 'js/coppia.js', 'js/ciclo.js', 'js/notifiche.js', 'js/app.js',
@@ -77,6 +77,17 @@ function audio(e, req) {
   }).then(function (res) { return res.ok ? pezzo(req, res) : res; });
 }
 
+/* Illustrazioni: subito dalla copia salvata (si rinnovano a ogni versione della cache); se manca, dalla rete. */
+function immagine(e, req) {
+  return caches.match(req).then(function (m) {
+    if (m) return m;
+    return fetch(req).then(function (res) {
+      if (res.ok) salva(e, req, res.clone());
+      return res;
+    });
+  });
+}
+
 /* Prima la rete (gli aggiornamenti arrivano), ma al massimo per 3 secondi: poi la copia salvata.
    Se la rete risponde con un errore e c’è una copia buona, vale la copia. */
 function rete(e, req) {
@@ -108,6 +119,7 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== location.origin) return;
   if (/\.mp3$/.test(url.pathname)) { e.respondWith(audio(e, req)); return; }
+  if (/\/img\/[^/]+\.webp$/.test(url.pathname)) { e.respondWith(immagine(e, req)); return; }
   e.respondWith(rete(e, req));
 });
 

@@ -64,7 +64,7 @@
   function mettiTestata(cont, prima, id) {
     if (!cont || TESTATE.indexOf(id) < 0 || cont.querySelector('.fascia-testata')) return;
     var box = h('div', { class: 'fascia fascia-piccola fascia-testata', 'aria-hidden': 'true' });
-    box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', loading: 'lazy', decoding: 'async',
+    box.appendChild(h('img', { src: 'img/' + id + '.webp', alt: '', width: '1200', height: '600', decoding: 'async',
       onerror: function () { if (box.parentNode) box.parentNode.removeChild(box); } }));
     cont.insertBefore(box, prima || null);
   }
