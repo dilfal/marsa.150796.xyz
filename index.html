@@ -296,7 +296,7 @@
     </div>
     <div class="fascia fascia-piccola fascia-ciclo" aria-hidden="true"><img src="img/ciclo.webp" alt="" width="1200" height="600" loading="lazy" decoding="async" onerror="var b=this.parentNode;if(b.parentNode)b.parentNode.removeChild(b)"></div>
     <h3>Il ciclo</h3>
-    <p class="small">I giorni prima del ciclo possono abbassare la soglia, come il dolore o una malattia: le emozioni arrivano più in fretta e più forti. Se lo accendi, Marsa te lo ricorda in quei giorni, così non ti coglie di sorpresa. Le date restano solo su questo telefono e non vengono inviate a nessuno. Il modello GET mette il ciclo tra le malattie fisiche, che rendono più vulnerabili. Le previsioni sono probabilità, non certezze.</p>
+    <p class="small">I giorni prima del ciclo possono abbassare la soglia, come il dolore o una malattia: le emozioni arrivano più in fretta e più forti. Se lo accendi, Marsa te lo ricorda in quei giorni, così non ti coglie di sorpresa. Le date restano solo su questo telefono e non vengono inviate a nessuno (anche se colleghi Maladh, al suo server arriva solo «pausa sì» o «pausa no»). Il modello GET mette il ciclo tra le malattie fisiche, che rendono più vulnerabili. Le previsioni sono probabilità, non certezze.</p>
     <p class="fonte">Fonte: O’Brien, Rapkin e altri, «The Premenstrual Syndromes».</p>
     <div class="notif-riga">
       <label class="notif-sw"><input type="checkbox" role="switch" id="ciclo-on"><span>Ricordami i giorni prima del ciclo</span></label>
@@ -307,7 +307,28 @@
         <input id="ciclo-durata" type="number" inputmode="numeric" min="20" max="45" step="1" value="28">
         <button class="btn" id="ciclo-durata-salva" type="button">Salva</button>
       </div>
+      <label class="campo" for="ciclo-giorni">Di solito quanti giorni dura?<small>Da 3 a 10 giorni. Dopo qualche ciclo Marsa usa la media di quelli che hai chiuso.</small></label>
+      <div class="row-inline">
+        <select id="ciclo-giorni"></select>
+        <button class="btn" id="ciclo-giorni-salva" type="button">Salva</button>
+      </div>
+      <div id="ciclo-fine-box"></div>
       <p class="small">Spegnendolo, le date restano finché non le cancelli dal diario o con «Cancella tutto».</p>
+      <h3 class="ciclo-sub">Collega Maladh</h3>
+      <p class="small">Facoltativo. Se usi anche l’app Maladh, nei giorni del ciclo Marsa può mettere in pausa i suoi avvisi. Incolla qui il codice che trovi in Maladh.</p>
+      <div id="maladh-da-collegare">
+        <label class="campo" for="maladh-codice">Codice di Maladh</label>
+        <div class="row-inline">
+          <input id="maladh-codice" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
+          <button class="btn" id="maladh-collega" type="button">Collega</button>
+        </div>
+      </div>
+      <div id="maladh-collegato" hidden>
+        <p>Collegato a Maladh</p>
+        <button class="btn btn-ghost" id="maladh-scollega" type="button">Scollega</button>
+      </div>
+      <p class="small" id="maladh-stato" role="status" aria-live="polite"></p>
+      <p class="small">Marsa dirà al server di Maladh soltanto “pausa sì” o “pausa no”, legato a un codice casuale: nessuna data, nessuno storico.</p>
     </div>
     <p class="small" id="ciclo-stato" role="status" aria-live="polite"></p>
     <h3>I tuoi dati</h3>
@@ -324,6 +345,21 @@
       <p class="sotto">1943–2026</p>
     </div>
     <p class="love">Made with love <span class="heart" aria-hidden="true">♥</span></p>
+  </div>
+</dialog>
+
+<!-- ================= FINESTRA: DOMANDA SUL CICLO ================= -->
+<dialog id="dlg-ciclo-fine" aria-labelledby="ciclo-fine-titolo">
+  <div class="dlg-in">
+    <div class="dlg-head">
+      <h2 id="ciclo-fine-titolo"></h2>
+      <button class="icon-btn" type="button" data-close aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p id="ciclo-fine-testo"></p>
+    <p class="small" id="ciclo-fine-nota" hidden></p>
+    <div class="row-btns" id="ciclo-fine-tasti"></div>
   </div>
 </dialog>
 

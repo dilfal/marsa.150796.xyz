@@ -1,5 +1,5 @@
 /* Marsa – il ciclo. Funzioni pure (nessun accesso a localStorage né al documento): le date sono testi «AAAA-MM-GG».
-   I dati stanno in «marsa.ciclo» = { attivo, durata, inizi: [...] }, solo su questo telefono. Le previsioni sono probabilità,
+   I dati stanno in «marsa.ciclo» = { attivo, durata, inizi: [...], fini: { inizio: fine }, giorni }, solo su questo telefono. Le previsioni sono probabilità,
    non certezze: servono a ricordare che i giorni prima del ciclo possono abbassare la soglia (l’onda si alza prima). */
 (function () {
   'use strict';
@@ -11,6 +11,10 @@
   var DURATA_DI_PARTENZA = 28;
   var GIORNO_MAX = 60;                /* oltre il giorno 60 non si mostra più «Giorno N» */
   var MAX_INIZI = 36;
+  var GIORNI_MIN = 3, GIORNI_MAX = 10, GIORNI_DI_PARTENZA = 5;   /* durata dei giorni di flusso dichiarata */
+  var DURATA_MIN = 2, DURATA_MAX = 10;                           /* durate misurate fuori da questi limiti si scartano */
+  var FINESTRA_FINE = 14;                                        /* un ciclo è «in corso» fino a inizio + 14 */
+  var ALFABETO_CODICE = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
   /* le cinque voci della sera (0 = per niente … 3 = molto) */
   var VOCI = [
@@ -54,6 +58,20 @@
     var o = gg(oggi);
     return o === null ? c.inizi : c.inizi.filter(function (s) { return gg(s) <= o; });
   }
+  /* «fini»: solo le fini di inizi che esistono, non prima dell’inizio, prima dell’inizio successivo e (se si sa «oggi») non nel futuro */
+  function finiValide(inizi, fini, oggi) {
+    var out = {}, o = gg(oggi);
+    if (!fini || typeof fini !== 'object' || Array.isArray(fini)) return out;
+    var ord = inizi.slice().sort();
+    ord.forEach(function (s, i) {
+      var f = fini[s], n = gg(f), a = gg(s);
+      if (typeof f !== 'string' || n === null || n < a) return;
+      if (i + 1 < ord.length && n >= gg(ord[i + 1])) return;
+      if (o !== null && n > o) return;
+      out[s] = f;
+    });
+    return out;
+  }
   function pulisci(raw, oggi) {
     var o = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
     var d = typeof o.durata === 'number' && isFinite(o.durata) && o.durata >= 20 && o.durata <= 45 ? Math.round(o.durata) : DURATA_DI_PARTENZA;
@@ -63,8 +81,10 @@
       visti[s] = 1; inizi.push(s);
     });
     inizi.sort();
-    var c = { attivo: o.attivo === true, durata: d, inizi: inizi.slice(-MAX_INIZI) };
+    var gs = typeof o.giorni === 'number' && isFinite(o.giorni) && o.giorni >= GIORNI_MIN && o.giorni <= GIORNI_MAX;
+    var c = { attivo: o.attivo === true, durata: d, inizi: inizi.slice(-MAX_INIZI), fini: {}, giorni: gs ? Math.round(o.giorni) : GIORNI_DI_PARTENZA, giorniScelti: gs };
     if (gg(oggi) !== null) c.inizi = utili(c, oggi);
+    c.fini = finiValide(c.inizi, o.fini, oggi);
     return c;
   }
   /* un inizio a meno di 15 giorni da un altro non è un ciclo nuovo: l’interfaccia chiede se sostituire quello vicino */
@@ -82,6 +102,54 @@
     if (gg(s) === null || c.inizi.indexOf(s) >= 0) return c.inizi;
     return c.inizi.concat([s]).sort().slice(-MAX_INIZI);
   }
+
+  /* un inizio tolto porta via anche la sua fine */
+  function togliInizio(c, s) {
+    var fini = {};
+    Object.keys(c.fini || {}).forEach(function (k) { if (k !== s) fini[k] = c.fini[k]; });
+    return { inizi: c.inizi.filter(function (x) { return x !== s; }), fini: fini };
+  }
+  /* la fine di un ciclo (inclusa): non prima dell’inizio; data non valida → fini invariate */
+  function aggiungiFine(c, inizio, fine) {
+    var fini = {};
+    Object.keys(c.fini || {}).forEach(function (k) { fini[k] = c.fini[k]; });
+    if (c.inizi.indexOf(inizio) < 0 || gg(fine) === null || gg(fine) < gg(inizio)) return fini;
+    fini[inizio] = fine;
+    return fini;
+  }
+  /* durata media dei giorni del ciclo: media arrotondata di (fine − inizio + 1) sugli ultimi 6 cicli con la fine,
+     senza i valori fuori misura (< 2 o > 10); se non ce n’è nessuno, i giorni dichiarati */
+  function giorniMedi(c) {
+    var fini = c.fini || {}, ds = [];
+    c.inizi.slice().sort().forEach(function (s) { if (fini[s] && gg(fini[s]) !== null) ds.push(gg(fini[s]) - gg(s) + 1); });
+    ds = ds.slice(-ULTIMI).filter(function (n) { return n >= DURATA_MIN && n <= DURATA_MAX; });
+    if (!ds.length) return typeof c.giorni === 'number' && c.giorni >= GIORNI_MIN && c.giorni <= GIORNI_MAX ? Math.round(c.giorni) : GIORNI_DI_PARTENZA;
+    return Math.round(ds.reduce(function (a, x) { return a + x; }, 0) / ds.length);
+  }
+  /* l’inizio del ciclo in corso: l’ultimo inizio, senza fine, degli ultimi 15 giorni (oggi compreso); altrimenti null */
+  function inCorso(c, oggi) {
+    var o = gg(oggi);
+    if (!c || o === null) return null;
+    var inizi = utili(c, oggi), u = inizi[inizi.length - 1];
+    if (!u || (c.fini && c.fini[u])) return null;
+    var g = o - gg(u);
+    return g >= 0 && g <= FINESTRA_FINE ? u : null;
+  }
+  /* la domanda «Il ciclo è finito?»: dal giorno inizio + media − 1 fino a inizio + 14, solo con un ciclo in corso senza fine.
+     Restituisce l’inizio da chiudere o null. */
+  function domandaFine(c, oggi) {
+    var u = inCorso(c, oggi);
+    if (!u) return null;
+    return gg(oggi) - gg(u) >= giorniMedi(c) - 1 ? u : null;
+  }
+  /* codice di collegamento con Maladh: 26 caratteri base32 Crockford; senza spazi e trattini, maiuscolo; non valido → null */
+  function normalizzaCodice(t) {
+    var s = String(t === null || t === undefined ? '' : t).replace(/[\s-]+/g, '').toUpperCase();
+    if (s.length !== 26) return null;
+    for (var i = 0; i < s.length; i++) if (ALFABETO_CODICE.indexOf(s.charAt(i)) < 0) return null;
+    return s;
+  }
+  function mostraCodice(s) { return String(s).replace(/(.{4})(?=.)/g, '$1-'); }
 
   /* lunghezze dei cicli: differenze tra inizi consecutivi, senza quelle fuori misura */
   function lunghezze(inizi) {
@@ -387,6 +455,8 @@
   var Ciclo = {
     VOCI: VOCI, VALORI: VALORI, TESTI: TESTI, FRASI: FRASI,
     gg: gg, data: data, pulisci: pulisci, aggiungiInizio: aggiungiInizio, inizioVicino: inizioVicino, sostituisciInizio: sostituisciInizio,
+    togliInizio: togliInizio, aggiungiFine: aggiungiFine, finiValide: finiValide, giorniMedi: giorniMedi, inCorso: inCorso, domandaFine: domandaFine,
+    normalizzaCodice: normalizzaCodice, mostraCodice: mostraCodice,
     lunghezze: lunghezze, stima: stima, previsione: previsione, giornoDelCiclo: giornoDelCiclo, giornoCiclo: giornoCiclo,
     finestre: finestre, avviso: avviso, prossimo: prossimo, fraseDelGiorno: fraseDelGiorno,
     vociSicure: vociSicure, sommaVoci: sommaVoci, frasePersonale: frasePersonale

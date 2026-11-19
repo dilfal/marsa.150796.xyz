@@ -4,7 +4,8 @@
 
   var A = window.Marsa;
   var TEMI = A.Temi;
-  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo', notifiche: 'marsa.notifiche', ciclo: 'marsa.ciclo', pianoLitigi: 'marsa.pianoLitigi' };
+  var K = { nome: 'marsa.nome', visto: 'marsa.visto', vista: 'marsa.vista', note: 'marsa.note', contatti: 'marsa.contatti', piano: 'marsa.piano', profilo: 'marsa.profilo', giorni: 'marsa.giorni', ricordo: 'marsa.ricordo', notifiche: 'marsa.notifiche', ciclo: 'marsa.ciclo', pianoLitigi: 'marsa.pianoLitigi',
+    cicloChiesto: 'marsa.cicloChiesto', maladh: 'marsa.maladh', maladhPausa: 'marsa.maladhPausa', maladhSospeso: 'marsa.maladhSospeso' };
 
   /* ---------- utilità ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -1606,12 +1607,18 @@
      Funzione facoltativa, spenta di default («Su Marsa»). I dati stanno in «marsa.ciclo» ({attivo, durata, inizi}); le voci della
      sera in «marsa.giorni», nel campo `ciclo` di ogni giornata ([cinque voti 0-3 o null]). Le previsioni stanno in js/ciclo.js.
      Il service worker non legge localStorage: la pagina gli lascia, nella Cache Storage («ciclo-avviso»), un record con le
-     sole date dell’avviso, e il worker lo usa per il testo della notifica del mattino. Il server non cambia e non riceve niente. */
+     sole date dell’avviso, e il worker lo usa per il testo della notifica del mattino. Il server delle notifiche non riceve niente.
+     Collegamento facoltativo con Maladh (v1.27): «marsa.maladh» = {codice}; al server di Maladh vanno solo il codice e «pausa sì/no», mai date o durate. */
   var CI = A.Ciclo || null;
   var CACHE_CICLO = 'ciclo-avviso';
   var cicloDaRidisegnare = false;
-  function cicloLeggi() { return CI ? CI.pulisci(load(K.ciclo, null), oggiCal()) : { attivo: false, durata: 28, inizi: [] }; }
-  function cicloScrivi(c) { save(K.ciclo, { attivo: c.attivo, durata: c.durata, inizi: c.inizi }); cicloAggiornaSW(c); }
+  function cicloLeggi() { return CI ? CI.pulisci(load(K.ciclo, null), oggiCal()) : { attivo: false, durata: 28, inizi: [], fini: {}, giorni: 5, giorniScelti: false }; }
+  function cicloScrivi(c) {
+    var o = { attivo: c.attivo, durata: c.durata, inizi: c.inizi, fini: CI ? CI.finiValide(c.inizi, c.fini) : {} };
+    if (c.giorniScelti) o.giorni = c.giorni;   /* senza una scelta resta il predefinito (5) e «mai chiesto» */
+    save(K.ciclo, o);
+    cicloAggiornaSW(c);
+  }
   function oggiCal() { return chiaveData(new Date()); }
   function cicloAggiornaSW(c) {
     if (typeof caches === 'undefined') return Promise.resolve();
@@ -1666,7 +1673,7 @@
   function cartaCiclo(conRiga, messaggio) {
     var st = cicloStato();
     if (!st) return null;
-    var c = st.c, box = h('div', { class: 'card ciclo', 'data-ciclo': '1' });
+    var c = st.c, box = h('div', { class: 'card ciclo', 'data-ciclo': '1', 'data-riga': conRiga ? '1' : '0' });
     function ridisegna(msg) {
       var nuova = cartaCiclo(conRiga, msg);
       if (box.parentNode) { if (nuova) box.parentNode.replaceChild(nuova, box); else box.parentNode.removeChild(box); }
@@ -1685,11 +1692,13 @@
         cc.inizi = CI.sostituisciInizio(cc, vic, d);
       } else cc.inizi = CI.aggiungiInizio(cc, d);
       cicloScrivi(cc);
+      cicloDopoInizio(d, vic);
       ridisegna(msg);
     }
     if (conRiga && st.tipo && st.testo) box.appendChild(h('p', { class: 'ciclo-riga', text: st.testo }));
     if (!c.inizi.length) box.appendChild(h('p', { class: 'small', text: 'Segna il primo giorno del ciclo: da lì Marsa conta i giorni.' }));
     var msg = h('p', { class: 'small ciclo-msg', role: 'status', 'aria-live': 'polite', text: messaggio || '' });
+    var fineBox = bloccoFineCiclo(st, null);   /* la scheda si ridisegna da sé (ridisegnaCartaCiclo) */
     var inData = h('input', { type: 'date', id: 'ciclo-altra-data', max: st.oggi, 'aria-label': 'Primo giorno del ciclo' });
     var altro = h('div', { class: 'ciclo-altro', hidden: true },
       h('label', { class: 'campo', for: 'ciclo-altra-data', text: 'Quale giorno?' }), inData,
@@ -1706,6 +1715,7 @@
       h('button', { class: 'btn', type: 'button', text: 'È iniziato il ciclo', onclick: function () { segna(oggiCal(), 'Segnato: oggi è il primo giorno.'); } }),
       link));
     box.appendChild(altro);
+    if (fineBox) box.appendChild(fineBox);
     box.appendChild(msg);
     return box;
   }
@@ -1767,13 +1777,159 @@
         h('span', { text: dataLunga(d) }),
         h('button', { class: 'btn btn-ghost', type: 'button', text: 'Togli', 'aria-label': 'Togli l’inizio del ' + dataLunga(d), onclick: function () {
           if (!confirm('Togliere questa data dal diario?')) return;
-          var cc = cicloLeggi();
-          cc.inizi = cc.inizi.filter(function (x) { return x !== d; });
+          var cc = cicloLeggi(), eraUltimo = cc.inizi[cc.inizi.length - 1] === d;
+          var t = CI.togliInizio(cc, d);   /* con l’inizio se ne va anche la sua fine */
+          cc.inizi = t.inizi; cc.fini = t.fini;
           cicloScrivi(cc);
+          if (eraUltimo && grezzo(K.maladhPausa) === '1') maladhImposta(false);   /* la pausa l’aveva messa Marsa per quel ciclo */
           disegnaDiario();
         } })));
     });
   }
+  /* ---------- fine del ciclo e collegamento con Maladh (v1.27) ---------- */
+  var MALADH_SERVER = 'https://push.150796.xyz';
+  function grezzo(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function scrivi(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* niente */ } }
+  function togli(k) { try { localStorage.removeItem(k); } catch (e) { /* niente */ } }
+  /* il codice di collegamento salvato (già normalizzato), o null se non si è collegati */
+  function maladhCodice() {
+    var m = load(K.maladh, null);
+    return CI && m && typeof m === 'object' && !Array.isArray(m) ? CI.normalizzaCodice(m.codice) : null;
+  }
+  /* POST JSON al server di Maladh: si manda solo il codice (e «pausa»). Risolve { stato: 200|404, dati }; rete o errore del server → rifiuta */
+  function maladhPost(percorso, corpo, keepalive) {
+    if (typeof fetch === 'undefined') return Promise.reject(new Error('rete'));
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, t = ctl ? setTimeout(function () { ctl.abort(); }, 12000) : null;
+    return fetch(MALADH_SERVER + percorso, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo), keepalive: keepalive === true, signal: ctl ? ctl.signal : undefined })
+      .then(function (r) {
+        if (t) clearTimeout(t);
+        if (r.status === 404) return { stato: 404 };
+        if (!r.ok) throw new Error('http');
+        return r.json().then(function (j) { return { stato: 200, dati: j }; });
+      }, function (e) { if (t) clearTimeout(t); throw e; });
+  }
+  function maladhScaduto() {
+    togli(K.maladh); togli(K.maladhPausa); togli(K.maladhSospeso);
+    aggiornaMaladhUI();
+    domandaCiclo({ titolo: 'Maladh', testo: 'Il collegamento con Maladh è scaduto: puoi rifarlo da Maladh.', tasti: [{ testo: 'Va bene' }] });
+  }
+  /* manda l’ultima operazione in sospeso (solo l’ultima conta); offline o errore: resta lì e si riprova all’apertura e al ritorno della rete */
+  function maladhInvia() {
+    var s = load(K.maladhSospeso, null);
+    if (!s || typeof s !== 'object' || typeof s.pausa !== 'boolean') return Promise.resolve();
+    /* un sospeso con il proprio codice è di un collegamento già tolto («Scollega» offline): si manda a quello */
+    var scoll = typeof s.codice === 'string' ? CI.normalizzaCodice(s.codice) : null, cod = scoll || maladhCodice();
+    if (!cod) return Promise.resolve();
+    return maladhPost('/pausa', { codice: cod, pausa: s.pausa }).then(function (r) {
+      if (r.stato === 404) { if (scoll) togli(K.maladhSospeso); else maladhScaduto(); return; }
+      var ora = load(K.maladhSospeso, null);
+      if (ora && ora.pausa === s.pausa) togli(K.maladhSospeso);
+    }, function () { /* resta in sospeso */ });
+  }
+  /* pausa sì/no verso Maladh, se si è collegati; chi mette la pausa lo ricorda in «marsa.maladhPausa» */
+  function maladhImposta(pausa) {
+    if (!maladhCodice()) return Promise.resolve();
+    if (pausa) scrivi(K.maladhPausa, '1'); else togli(K.maladhPausa);
+    save(K.maladhSospeso, { pausa: pausa });
+    return maladhInvia();
+  }
+  /* dopo aver segnato un inizio: oggi o ieri → pausa; un inizio più vecchio non manda nulla (e toglie la pausa nostra, se era di quello sostituito) */
+  function cicloDopoInizio(d, sostituito) {
+    if (!maladhCodice()) return;
+    var n = CI.gg(d), o = CI.gg(oggiCal());
+    if (n !== null && n >= o - 1 && n <= o) maladhImposta(true);
+    else if (sostituito && grezzo(K.maladhPausa) === '1') maladhImposta(false);
+  }
+  /* segna la fine del ciclo iniziato il giorno `inizio`; collegati: la pausa di Maladh finisce */
+  function cicloSegnaFine(inizio, fine, msg) {
+    var cc = cicloLeggi();
+    cc.fini = CI.aggiungiFine(cc, inizio, fine);
+    cicloScrivi(cc);
+    if (maladhCodice()) maladhImposta(false); else togli(K.maladhPausa);
+    ridisegnaCartaCiclo(msg);
+  }
+  /* rimette a posto la scheda «Oggi» e il piede della pagina iniziale, se sono sullo schermo */
+  function ridisegnaCartaCiclo(msg) {
+    var box = radice && radice.querySelector('[data-ciclo]'), riga = box ? box.getAttribute('data-riga') === '1' : false;
+    if (box && box.parentNode) {
+      var nuova = cartaCiclo(riga, msg);
+      if (nuova) box.parentNode.replaceChild(nuova, box); else box.parentNode.removeChild(box);
+    }
+    var vecchio = radice && radice.querySelector('.ciclo-piede');
+    if (vecchio) { var nuovo = piedeCiclo(riga); if (nuovo) vecchio.parentNode.replaceChild(nuovo, vecchio); else vecchio.parentNode.removeChild(vecchio); }
+  }
+  /* «È finito» e il testo sui giorni, mentre c’è un ciclo in corso senza fine; null altrimenti. dopo(msg) ridisegna chi chiama */
+  function bloccoFineCiclo(st, dopo) {
+    var u = st && CI.inCorso(st.c, st.oggi);
+    if (!u) return null;
+    return h('div', { class: 'ciclo-fine' },
+      h('p', { class: 'small', text: 'Di solito dura circa ' + CI.giorniMedi(st.c) + ' giorni.' }),
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'È finito', onclick: function () {
+        var m = 'Segnato: il ciclo è finito oggi.';
+        cicloSegnaFine(u, st.oggi, m);
+        if (dopo) dopo(m);
+      } }));
+  }
+  /* una finestra calma con un testo e uno o più tasti: { titolo, testo, nota, tasti: [{ testo, fai }] } */
+  function domandaCiclo(o) {
+    var d = $('#dlg-ciclo-fine');
+    if (!d) return;
+    $('#ciclo-fine-titolo').textContent = o.titolo;
+    $('#ciclo-fine-testo').textContent = o.testo;
+    var nota = $('#ciclo-fine-nota');
+    nota.textContent = o.nota || ''; nota.hidden = !o.nota;
+    var box = $('#ciclo-fine-tasti');
+    clear(box);
+    o.tasti.forEach(function (t, i) {
+      box.appendChild(h('button', { class: 'btn' + (i === 0 ? '' : ' btn-ghost'), type: 'button', text: t.testo, onclick: function () { chiudi(d); if (t.fai) t.fai(); } }));
+    });
+    apri(d);
+  }
+  /* all’apertura, dal giorno inizio + media − 1 fino a inizio + 14: una volta al giorno «Il ciclo è finito?» */
+  function domandaFinePrevista() {
+    if (!CI || document.querySelector('dialog[open]')) return;
+    var c = cicloLeggi(), oggi = oggiCal();
+    if (!c.attivo) return;
+    var u = CI.domandaFine(c, oggi);
+    if (!u || grezzo(K.cicloChiesto) === oggi) return;
+    scrivi(K.cicloChiesto, oggi);
+    var ieri = CI.data(CI.gg(oggi) - 1);
+    if (CI.gg(ieri) < CI.gg(u)) ieri = u;
+    domandaCiclo({
+      titolo: 'Il ciclo è finito?', testo: 'Se vuoi, dimmelo: così i conti dei giorni restano giusti.',
+      nota: maladhCodice() ? 'Con «Sì», Maladh riprende gli avvisi.' : '',
+      tasti: [
+        { testo: 'Sì, oggi', fai: function () { cicloSegnaFine(u, oggi); } },
+        { testo: 'Sì, ieri', fai: function () { cicloSegnaFine(u, ieri); } },
+        { testo: 'Non ancora' }
+      ]
+    });
+  }
+  /* all’apertura: invia l’eventuale operazione in sospeso; se la pausa è nostra e in Maladh è stata tolta, lo chiede; poi la domanda del giorno */
+  function cicloApertura() {
+    if (!CI) return;
+    var avevaSospeso = !!load(K.maladhSospeso, null);   /* con un sospeso si ritenta quello e basta: niente /stato né «Hai tolto la pausa?» */
+    maladhInvia().then(function () {
+      var c = cicloLeggi(), cod = maladhCodice(), u = c.attivo ? CI.inCorso(c, oggiCal()) : null;
+      if (cod && u && !avevaSospeso && !load(K.maladhSospeso, null) && grezzo(K.maladhPausa) === '1') {
+        return maladhPost('/stato', { codice: cod }).then(function (r) {
+          if (r.stato === 404) { maladhScaduto(); return true; }
+          if (r.dati && r.dati.pausa === false) {
+            togli(K.maladhPausa);
+            domandaCiclo({
+              titolo: 'Maladh', testo: 'Hai tolto la pausa in Maladh: segno la fine del ciclo a oggi?',
+              tasti: [{ testo: 'Sì', fai: function () { cicloSegnaFine(u, oggiCal()); } }, { testo: 'No' }]
+            });
+            return true;
+          }
+          return false;
+        }, function () { return false; });
+      }
+      return false;
+    }).then(function (fatto) { if (!fatto) domandaFinePrevista(); });
+  }
+  window.addEventListener('online', function () { maladhInvia(); });
+
   /* «Su Marsa»: l’interruttore, la durata abituale */
   function cicloUI() {
     var on = $('#ciclo-on');
@@ -1782,7 +1938,25 @@
     on.checked = c.attivo;
     $('#ciclo-box').hidden = !c.attivo;
     $('#ciclo-durata').value = c.durata;
+    $('#ciclo-giorni').value = c.giorni;
     $('#ciclo-stato').textContent = '';
+    $('#maladh-stato').textContent = '';
+    aggiornaMaladhUI();
+    disegnaFineInfo();
+  }
+  /* «È finito» dentro «Su Marsa» */
+  function disegnaFineInfo(msg) {
+    var box = $('#ciclo-fine-box');
+    if (!box) return;
+    clear(box);
+    var st = cicloStato(), b = st ? bloccoFineCiclo(st, function (m) { disegnaFineInfo(m); }) : null;
+    if (b) box.appendChild(b);
+    if (msg) box.appendChild(h('p', { class: 'small', role: 'status', text: msg }));
+  }
+  function aggiornaMaladhUI() {
+    var on = !!maladhCodice(), a = $('#maladh-da-collegare'), b = $('#maladh-collegato');
+    if (!a || !b) return;
+    a.hidden = on; b.hidden = !on;
   }
   (function collegaCiclo() {
     var on = $('#ciclo-on');
@@ -1791,6 +1965,7 @@
     on.addEventListener('change', function () {
       var c = cicloLeggi();
       c.attivo = on.checked;
+      if (!c.attivo && grezzo(K.maladhPausa) === '1') maladhImposta(false);   /* spento: la pausa messa da Marsa non deve restare accesa (offline resta in sospeso) */
       cicloScrivi(c);
       cicloDaRidisegnare = true;
       $('#ciclo-box').hidden = !c.attivo;
@@ -1805,6 +1980,44 @@
       cicloScrivi(c);
       cicloDaRidisegnare = true;
       stato('Fatto: di solito ' + n + ' giorni.');
+    });
+    var sel = $('#ciclo-giorni');
+    for (var gi = 3; gi <= 10; gi++) sel.appendChild(h('option', { value: String(gi), text: String(gi) }));
+    sel.value = '5';
+    $('#ciclo-giorni-salva').addEventListener('click', function () {
+      var n = parseInt(sel.value, 10);
+      if (!(n >= 3 && n <= 10)) { stato('Scegli un numero da 3 a 10.'); return; }
+      var c = cicloLeggi();
+      c.giorni = n; c.giorniScelti = true;
+      cicloScrivi(c);
+      cicloDaRidisegnare = true;
+      disegnaFineInfo();
+      stato('Fatto: di solito ' + n + ' giorni.');
+    });
+    function statoM(t) { $('#maladh-stato').textContent = t; }
+    $('#maladh-collega').addEventListener('click', function () {
+      var cod = CI.normalizzaCodice($('#maladh-codice').value), bt = $('#maladh-collega');
+      if (!cod) { statoM('Il codice non è valido: sono 26 lettere e cifre. Ricontrollalo in Maladh.'); return; }
+      bt.disabled = true; statoM('Controllo…');
+      maladhPost('/stato', { codice: cod }).then(function (r) {
+        bt.disabled = false;
+        if (r.stato === 404) { statoM('Codice non trovato: ricontrollalo in Maladh.'); return; }
+        save(K.maladh, { codice: cod });
+        var so = load(K.maladhSospeso, null);
+        if (!so || !so.codice) togli(K.maladhSospeso);   /* resta solo un sospeso di un collegamento vecchio, col suo codice */
+        togli(K.maladhPausa);
+        $('#maladh-codice').value = '';
+        aggiornaMaladhUI();
+        if (!cicloLeggi().giorniScelti) { statoM('Collegato. Di solito quanti giorni dura il ciclo? Scegli qui sopra e tocca «Salva».'); $('#ciclo-giorni').focus(); }
+        else statoM('Collegato a Maladh.');
+      }, function () { bt.disabled = false; statoM('Non riesco a raggiungere Maladh: riprova tra poco.'); });
+    });
+    $('#maladh-scollega').addEventListener('click', function () {
+      var cod = maladhCodice(), pausaNostra = grezzo(K.maladhPausa) === '1';
+      togli(K.maladh); togli(K.maladhPausa); togli(K.maladhSospeso);
+      if (cod && pausaNostra) { save(K.maladhSospeso, { pausa: false, codice: cod }); maladhInvia(); }   /* prima la pausa messa da Marsa si toglie; offline resta in sospeso, col codice */
+      aggiornaMaladhUI();
+      statoM('Scollegato.');
     });
     $('#dlg-info').addEventListener('close', function () { if (cicloDaRidisegnare) { cicloDaRidisegnare = false; route(); } });
   })();
@@ -1834,6 +2047,9 @@
   $('#info-cancella-tutto').addEventListener('click', function () {
     if (!confirm('Cancellare tutto: note, nome, persone, piano e preferenze? Non si può annullare.')) return;
     /* con le notifiche attive si toglie prima l’iscrizione dal server */
+    /* la pausa messa da Marsa si toglie in Maladh, una volta sola: con keepalive la richiesta parte anche se la pagina si ricarica */
+    var codM = maladhCodice();
+    if (codM && grezzo(K.maladhPausa) === '1') maladhPost('/pausa', { codice: codM, pausa: false }, true).catch(function () { /* una volta e basta */ });
     var prima = A.Notifiche && A.Notifiche.attive() ? A.Notifiche.disattiva(true) : Promise.resolve();
     prima.then(cicloPulisciSW).then(function () {
       Object.keys(K).forEach(function (k) { try { localStorage.removeItem(K[k]); } catch (e) { /* niente */ } });
@@ -1970,6 +2186,7 @@
   route();
   if (!load(K.visto, 0)) apri($('#dlg-benvenuto'));
   cicloAggiornaSW();
+  cicloApertura();
 
   /* ---------- uso senza rete ---------- */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
